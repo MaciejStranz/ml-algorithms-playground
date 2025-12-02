@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Callable, Tuple
 
 import numpy as np
-from sklearn.datasets import load_iris, load_wine, load_breast_cancer
+from sklearn.datasets import load_iris, load_wine, load_breast_cancer, load_diabetes
 from sklearn.model_selection import train_test_split
 
 from .metadata import DatasetMeta, TaskType
@@ -63,10 +63,32 @@ def _load_breast_cancer() -> Tuple[Tuple[np.ndarray, np.ndarray], DatasetMeta]:
     return (bunch.data, bunch.target), meta
 
 
+def _load_diabetes() -> Tuple[Tuple[np.ndarray, np.ndarray], DatasetMeta]:
+    bunch = load_diabetes()
+
+    X = bunch.data
+    y = bunch.target  
+
+    meta = DatasetMeta(
+        id="diabetes",
+        name="Diabetes",
+        task=TaskType.REGRESSION,          
+        n_samples=X.shape[0],
+        n_features=X.shape[1],
+        n_classes=None,                    
+        class_labels=None,                 
+        feature_names=list(bunch.feature_names),
+        target_name="disease_progression", 
+    )
+
+    return (X, y), meta
+
+
 DATASET_LOADERS: dict[str, Callable[[], Tuple[Tuple[np.ndarray, np.ndarray], DatasetMeta]]] = {
     "iris": _load_iris,
     "wine": _load_wine,
     "breast_cancer": _load_breast_cancer,
+    "diabetes": _load_diabetes,
 }
 
 
@@ -83,9 +105,14 @@ def load_data(
             f"Unsupported dataset name: {name!r}. Available: {available}"
         ) from None
 
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=test_size, random_state=random_state, stratify=y
-    )
+    if meta.task == TaskType.REGRESSION:
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=test_size, random_state=random_state
+        )
+    else:
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=test_size, random_state=random_state, stratify=y
+        )
 
     return Dataset(
         X_train=X_train,

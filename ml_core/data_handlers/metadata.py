@@ -1,12 +1,7 @@
 from dataclasses import dataclass
-from enum import Enum
 from typing import List, Optional
 
-
-class TaskType(str, Enum):
-    BINARY = "binary_classification"
-    MULTICLASS = "multiclass_classification"
-    REGRESSION = "regression"
+from common.types import TaskType
 
 
 @dataclass
@@ -20,7 +15,7 @@ class DatasetMeta:
     # target
     n_classes: Optional[int] = None
     class_labels: Optional[List[str]] = None
-    
+
     # some extra info
     feature_names: Optional[List[str]] = None
     target_name: Optional[str] = None

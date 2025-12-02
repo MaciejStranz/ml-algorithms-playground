@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import Callable, Tuple
-
+import math
 import numpy as np
 from sklearn.datasets import load_iris, load_wine, load_breast_cancer, load_diabetes
 from sklearn.model_selection import train_test_split
@@ -83,12 +83,32 @@ def _load_diabetes() -> Tuple[Tuple[np.ndarray, np.ndarray], DatasetMeta]:
 
     return (X, y), meta
 
+def _regression_sin() -> Tuple[Tuple[np.ndarray, np.ndarray], DatasetMeta]:
+    X = np.linspace(-2*math.pi, 2*math.pi, 2000)
+    y = np.sin(X)
+    X = X.reshape(-1, 1)
+
+    meta = DatasetMeta(
+        id="sinus",
+        name="Sinusoid Function",
+        task=TaskType.REGRESSION,          
+        n_samples=X.shape[0],
+        n_features=X.shape[1],
+        n_classes=None,                    
+        class_labels=None,                 
+        feature_names=None,
+        target_name="Value of sin(x)", 
+    )
+
+    return (X, y), meta
+
 
 DATASET_LOADERS: dict[str, Callable[[], Tuple[Tuple[np.ndarray, np.ndarray], DatasetMeta]]] = {
     "iris": _load_iris,
     "wine": _load_wine,
     "breast_cancer": _load_breast_cancer,
     "diabetes": _load_diabetes,
+    "sinx": _regression_sin,
 }
 
 

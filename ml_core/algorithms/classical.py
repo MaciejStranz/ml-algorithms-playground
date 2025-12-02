@@ -5,6 +5,8 @@ from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.linear_model import LogisticRegression, LinearRegression
 from common.types import TaskType
 from xgboost import XGBClassifier, XGBRegressor
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
 
 
 from common.types import TaskType
@@ -13,12 +15,12 @@ from common.types import TaskType
 def _svm_factory(task: TaskType, params: Dict[str, Any] | None):
     params = params or {}
     if task in (TaskType.BINARY, TaskType.MULTICLASS):
-        # probability=True jeśli chcesz predict_proba
-        return SVC(**{"probability": True, **params})
+        base_model = SVC(**{"probability": True, **params})
     elif task == TaskType.REGRESSION:
-        return SVR(**params)
+        base_model = SVR(**params)
     else:
         raise ValueError(f"SVM: unsupported task {task}")
+    return make_pipeline(StandardScaler(), base_model)
 
 
 def _rf_factory(task: TaskType, params: Dict[str, Any] | None):

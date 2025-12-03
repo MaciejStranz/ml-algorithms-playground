@@ -3,27 +3,38 @@ from algorithms.classical import get_classical_model
 from data_handlers.load_dataset import load_data
 from sklearn.metrics import classification_report
 from evaluation.metrics import EvaluationReport
+from algorithms.deep.mlp import MLPClassifier, MLPRegressor
 
 if __name__ == "__main__":
     dataset = load_data("sinx")  
 
     print("Meta:", dataset.meta)
     
-    params_for_xgboost = {
-    "n_estimators": 500,
-    "learning_rate": 0.03,
-    "max_depth": 3,
-    "subsample": 0.8,
-    "colsample_bytree": 0.8,
-    "objective": "reg:squarederror",
-    }
+    # params_for_xgboost = {
+    # "n_estimators": 500,
+    # "learning_rate": 0.03,
+    # "max_depth": 3,
+    # "subsample": 0.8,
+    # "colsample_bytree": 0.8,
+    # "objective": "reg:squarederror",
+    # }
 
-    params_svm = {"kernel": "linear"}
+    # params_svm = {"kernel": "linear"}
 
-    model = get_classical_model("svm",dataset.meta.task)
+    model = get_classical_model("svm",dataset.meta.task, {"kernel": "linear"})
     model.fit(dataset.X_train, dataset.y_train)
     pred = model.predict(dataset.X_test)
 
     print(pred)
     report = EvaluationReport(dataset.y_test, pred, dataset.meta.task, target_names=dataset.meta.class_labels)
     print(report.report_str())
+
+
+    MlpClass = MLPRegressor()
+    MlpClass.fit(dataset.X_train, dataset.y_train)
+    mlp_pred = MlpClass.predict(dataset.X_test)
+
+    report_mlp  = EvaluationReport(dataset.y_test, mlp_pred, dataset.meta.task, target_names=dataset.meta.class_labels)
+    print(report_mlp.report_str())
+    
+

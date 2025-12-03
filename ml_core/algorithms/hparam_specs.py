@@ -4,10 +4,9 @@ from __future__ import annotations
 
 from typing import Any, Dict, List
 
-from common.types import TaskType
+from common.types import TaskType, ParamType
 from common.hyperparameters import (
     HyperparameterSpec,
-    ParamType,
     specs_to_dict_list,
     validate_params_against_specs,
 )

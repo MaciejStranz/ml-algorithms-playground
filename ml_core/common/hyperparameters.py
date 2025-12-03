@@ -6,17 +6,7 @@ from dataclasses import dataclass, asdict
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from .types import TaskType
-
-
-class ParamType(str, Enum):
-    """Generic type of a hyperparameter value."""
-    INT = "int"
-    FLOAT = "float"
-    BOOL = "bool"
-    STRING = "string"
-    CHOICE = "choice"
-    NUMBER_OR_STRING = "number_or_string"  # e.g. gamma: float or "scale"/"auto"
+from .types import TaskType, ParamType
 
 
 @dataclass

@@ -3,7 +3,7 @@ from algorithms.classical import get_classical_model
 from data_handlers.load_dataset import load_data
 from sklearn.metrics import classification_report
 from evaluation.metrics import EvaluationReport
-from algorithms.deep.mlp import MLPClassifier, MLPRegressor
+from algorithms.deep.mlp import get_deep_model
 
 if __name__ == "__main__":
     dataset = load_data("sinx")  
@@ -30,9 +30,9 @@ if __name__ == "__main__":
     print(report.report_str())
 
 
-    MlpClass = MLPRegressor()
-    MlpClass.fit(dataset.X_train, dataset.y_train)
-    mlp_pred = MlpClass.predict(dataset.X_test)
+    deep_model = get_deep_model("mlp", dataset.meta.task)
+    deep_model.fit(dataset.X_train, dataset.y_train)
+    mlp_pred = deep_model.predict(dataset.X_test)
 
     report_mlp  = EvaluationReport(dataset.y_test, mlp_pred, dataset.meta.task, target_names=dataset.meta.class_labels)
     print(report_mlp.report_str())

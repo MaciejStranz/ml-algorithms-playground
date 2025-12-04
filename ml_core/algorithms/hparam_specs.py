@@ -284,6 +284,85 @@ LOGISTIC_HPARAMS: List[HyperparameterSpec] = [
     ),
 ]
 
+#  MLP (Torch) Hyperparameters
+
+MLP_HPARAMS: List[HyperparameterSpec] = [
+    HyperparameterSpec(
+        name="hidden_dims",
+        display_name="Hidden layer sizes",
+        type=ParamType.INT_LIST,
+        default=[64, 64],
+        description=(
+            "List of hidden layer sizes, e.g. [64, 64] or [128, 64, 32]. "
+        ),
+        applicable_tasks=[TaskType.BINARY, TaskType.MULTICLASS, TaskType.REGRESSION],
+    ),
+    HyperparameterSpec(
+        name="activation",
+        display_name="Activation function",
+        type=ParamType.CHOICE,
+        default="relu",
+        choices=["relu", "tanh", "gelu"],
+        description="Non-linear activation used between layers.",
+        applicable_tasks=[TaskType.BINARY, TaskType.MULTICLASS, TaskType.REGRESSION],
+    ),
+    HyperparameterSpec(
+        name="dropout",
+        display_name="Dropout",
+        type=ParamType.FLOAT,
+        default=0.0,
+        min=0.0,
+        max=0.8,
+        description=(
+            "Dropout probability applied after each hidden layer. "
+            "Use values in [0.0, 0.5] for regularization. 0.0 disables dropout."
+        ),
+        applicable_tasks=[TaskType.BINARY, TaskType.MULTICLASS, TaskType.REGRESSION],
+        advanced=True,
+    ),
+    HyperparameterSpec(
+        name="lr",
+        display_name="Learning rate",
+        type=ParamType.FLOAT,
+        default=1e-3,
+        min=1e-6,
+        max=1e-1,
+        description="Learning rate for the Adam optimizer.",
+        applicable_tasks=[TaskType.BINARY, TaskType.MULTICLASS, TaskType.REGRESSION],
+    ),
+    HyperparameterSpec(
+        name="batch_size",
+        display_name="Batch size",
+        type=ParamType.INT,
+        default=64,
+        min=1,
+        max=4096,
+        description="Mini-batch size used during training.",
+        applicable_tasks=[TaskType.BINARY, TaskType.MULTICLASS, TaskType.REGRESSION],
+    ),
+    HyperparameterSpec(
+        name="max_epochs",
+        display_name="Max epochs",
+        type=ParamType.INT,
+        default=100,
+        min=1,
+        max=10000,
+        description="Maximum number of training epochs.",
+        applicable_tasks=[TaskType.BINARY, TaskType.MULTICLASS, TaskType.REGRESSION],
+    ),
+    HyperparameterSpec(
+        name="weight_decay",
+        display_name="Weight decay (L2 regularization)",
+        type=ParamType.FLOAT,
+        default=0.0,
+        min=0.0,
+        max=1.0,
+        description="L2 weight decay used by the Adam optimizer.",
+        applicable_tasks=[TaskType.BINARY, TaskType.MULTICLASS, TaskType.REGRESSION],
+        advanced=True,
+    ),
+]
+
 
 #  Registry and helpers
 
@@ -292,6 +371,7 @@ ALGORITHM_HPARAMS: Dict[str, List[HyperparameterSpec]] = {
     "random_forest": RF_HPARAMS,
     "xgboost": XGB_HPARAMS,
     "logistic": LOGISTIC_HPARAMS,
+    "mlp" : MLP_HPARAMS,
 }
 
 

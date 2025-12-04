@@ -1,14 +1,14 @@
-# ml_core/algorithms/deep_mlp.py
-
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Iterable, List, Optional, Sequence, Tuple
+from typing import Iterable, List, Optional, Sequence, Tuple, Dict, Any
 
 import numpy as np
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
+
+from common.types import TaskType
 
 
 def _get_device(device: Optional[str] = None) -> torch.device:
@@ -350,3 +350,64 @@ class MLPRegressor:
             X_tensor = torch.from_numpy(X).to(self._device)
             preds = self._model(X_tensor)
         return preds.cpu().numpy().reshape(-1)
+    
+
+def _mlp_factory(task: TaskType, params: Dict[str, Any] | None):
+    params = dict(params or {})
+
+    if "hidden_dims" not in params:
+        params["hidden_dims"] = [64, 64]
+
+    if task in (TaskType.BINARY, TaskType.MULTICLASS):
+        return MLPClassifier(**params)
+    elif task == TaskType.REGRESSION:
+        return MLPRegressor(**params)
+    else:
+        raise ValueError(f"MLP: unsupported task type {task!r}")
+
+
+_DEEP_MODEL_FACTORIES: Dict[str, Any] = {
+    "mlp": _mlp_factory,
+}
+
+
+def get_deep_model(
+    name: str,
+    task: TaskType,
+    params: Dict[str, Any] | None = None,
+):
+    """
+    Return a deep model instance for the given algorithm name and task.
+
+    Parameters
+    ----------
+    name:
+        Algorithm identifier, e.g. "mlp".
+    task:
+        TaskType (BINARY, MULTICLASS, REGRESSION).
+    params:
+        Hyperparameters to pass to the underlying model constructor.
+        For MLP this may include:
+        - hidden_dims (string '64,64' or list/tuple of ints),
+        - activation,
+        - dropout,
+        - lr,
+        - batch_size,
+        - max_epochs,
+        - weight_decay,
+        - device, random_state, verbose (if you choose to expose them).
+
+    Raises
+    ------
+    ValueError:
+        If the algorithm name is unknown or the task is unsupported.
+    """
+    try:
+        factory = _DEEP_MODEL_FACTORIES[name]
+    except KeyError:
+        available = ", ".join(sorted(_DEEP_MODEL_FACTORIES.keys()))
+        raise ValueError(
+            f"Unknown deep algorithm {name!r}. Available: {available}"
+        ) from None
+
+    return factory(task, params)

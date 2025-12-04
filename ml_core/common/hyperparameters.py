@@ -118,6 +118,19 @@ def validate_value_against_spec(spec: HyperparameterSpec, value: Any) -> None:
             raise ValueError(
                 f"Parameter {spec.name!r} must be one of: {allowed}. Got: {value!r}"
             )
+        
+    elif t is ParamType.INT_LIST:
+    # Should be a list or tuple of ints
+        if not isinstance(value, (list, tuple)):
+            raise ValueError(
+                f"Parameter {spec.name!r} must be a list of integers, "
+                f"but got {type(value).__name__}."
+            )
+        for v in value:
+            if not isinstance(v, int):
+                raise ValueError(
+                    f"All elements of {spec.name!r} must be integers. Got element {v!r}."
+                )
 
     elif t is ParamType.NUMBER_OR_STRING:
         # Example: gamma: either float in [min, max] OR one of choices ("scale", "auto").

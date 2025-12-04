@@ -13,3 +13,4 @@ class ParamType(str, Enum):
     STRING = "string"
     CHOICE = "choice"
     NUMBER_OR_STRING = "number_or_string"  # e.g. gamma: float or "scale"/"auto"
+    INT_LIST = "int_list"

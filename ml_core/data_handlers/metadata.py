@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from typing import List, Optional
 
 from ml_core.common.types import TaskType
@@ -19,3 +19,8 @@ class DatasetMeta:
     # some extra info
     feature_names: Optional[List[str]] = None
     target_name: Optional[str] = None
+
+    def to_dict(self):
+        d = asdict(self)
+        d["task"] = self.task.value
+        return d

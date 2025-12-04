@@ -4,37 +4,18 @@ from ml_core.data_handlers.load_dataset import load_data
 from sklearn.metrics import classification_report
 from ml_core.evaluation.metrics import EvaluationReport
 from ml_core.algorithms.deep.mlp import get_deep_model
+from ml_core.runner import RunConfig, run_experiment
 
 if __name__ == "__main__":
-    dataset = load_data("sinx")  
-
-    print("Meta:", dataset.meta)
     
-    # params_for_xgboost = {
-    # "n_estimators": 500,
-    # "learning_rate": 0.03,
-    # "max_depth": 3,
-    # "subsample": 0.8,
-    # "colsample_bytree": 0.8,
-    # "objective": "reg:squarederror",
-    # }
+    #params = {"kernel": "rbf", "gamma":"scale"}
+    params = {}
 
-    # params_svm = {"kernel": "linear"}
+    RunConf = RunConfig(dataset_name="wine", 
+                        algorithm_name="mlp",
+                        hyperparams=params)
+    result = run_experiment(RunConf)
+    print(result)
 
-    model = get_classical_model("svm",dataset.meta.task, {"kernel": "linear"})
-    model.fit(dataset.X_train, dataset.y_train)
-    pred = model.predict(dataset.X_test)
-
-    print(pred)
-    report = EvaluationReport(dataset.y_test, pred, dataset.meta.task, target_names=dataset.meta.class_labels)
-    print(report.report_str())
-
-
-    deep_model = get_deep_model("mlp", dataset.meta.task)
-    deep_model.fit(dataset.X_train, dataset.y_train)
-    mlp_pred = deep_model.predict(dataset.X_test)
-
-    report_mlp  = EvaluationReport(dataset.y_test, mlp_pred, dataset.meta.task, target_names=dataset.meta.class_labels)
-    print(report_mlp.report_str())
     
 

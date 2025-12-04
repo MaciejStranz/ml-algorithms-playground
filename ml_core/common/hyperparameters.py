@@ -6,7 +6,7 @@ from dataclasses import dataclass, asdict
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from .types import TaskType, ParamType
+from ml_core.common.types import TaskType, ParamType
 
 
 @dataclass

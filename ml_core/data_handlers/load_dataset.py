@@ -5,7 +5,7 @@ import numpy as np
 from sklearn.datasets import load_iris, load_wine, load_breast_cancer, load_diabetes
 from sklearn.model_selection import train_test_split
 
-from .metadata import DatasetMeta, TaskType
+from ml_core.data_handlers.metadata import DatasetMeta, TaskType
 
 
 @dataclass

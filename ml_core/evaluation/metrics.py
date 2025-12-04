@@ -12,7 +12,7 @@ from sklearn.metrics import (
     r2_score,
 )
 
-from common.types import TaskType
+from ml_core.common.types import TaskType
 
 
 @dataclass

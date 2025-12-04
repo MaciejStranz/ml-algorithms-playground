@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List, Optional
 
-from common.types import TaskType
+from ml_core.common.types import TaskType
 
 
 @dataclass

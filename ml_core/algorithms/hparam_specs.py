@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import Any, Dict, List
 
-from common.types import TaskType, ParamType
-from common.hyperparameters import (
+from ml_core.common.types import TaskType, ParamType
+from ml_core.common.hyperparameters import (
     HyperparameterSpec,
     specs_to_dict_list,
     validate_params_against_specs,

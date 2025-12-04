@@ -3,13 +3,12 @@ from typing import Any, Dict
 from sklearn.svm import SVC, SVR
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.linear_model import LogisticRegression, LinearRegression
-from common.types import TaskType
+from ml_core.common.types import TaskType
 from xgboost import XGBClassifier, XGBRegressor
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
 
-from common.types import TaskType
 
 
 def _svm_factory(task: TaskType, params: Dict[str, Any] | None):

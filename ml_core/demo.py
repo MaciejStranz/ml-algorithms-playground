@@ -1,9 +1,9 @@
 # ml_core/demo.py
-from algorithms.classical import get_classical_model
-from data_handlers.load_dataset import load_data
+from ml_core.algorithms.classical import get_classical_model
+from ml_core.data_handlers.load_dataset import load_data
 from sklearn.metrics import classification_report
-from evaluation.metrics import EvaluationReport
-from algorithms.deep.mlp import get_deep_model
+from ml_core.evaluation.metrics import EvaluationReport
+from ml_core.algorithms.deep.mlp import get_deep_model
 
 if __name__ == "__main__":
     dataset = load_data("sinx")  

@@ -8,7 +8,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
 
-from common.types import TaskType
+from ml_core.common.types import TaskType
 
 
 def _get_device(device: Optional[str] = None) -> torch.device:

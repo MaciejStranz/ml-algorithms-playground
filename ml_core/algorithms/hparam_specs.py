@@ -1,5 +1,3 @@
-# ml_core/algorithms/hparam_specs.py
-
 from __future__ import annotations
 
 from typing import Any, Dict, List
@@ -284,7 +282,7 @@ REGRESSION_HPARAMS: List[HyperparameterSpec] = [
     ),
 ]
 
-#  MLP (Torch) Hyperparameters
+#  MLP Hyperparameters
 
 MLP_HPARAMS: List[HyperparameterSpec] = [
     HyperparameterSpec(

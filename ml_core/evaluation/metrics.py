@@ -28,9 +28,9 @@ class EvaluationReport:
 
     def summary(self) -> Dict[str, Any]:
         """
-        Zwraca metryki jako słownik (dict).
-        Dla klasyfikacji -> classification_report(output_dict=True)
-        Dla regresji     -> {mae, mse, rmse, r2}
+        Returns metrics as dictionary (dict).
+        For classification -> classification_report(output_dict=True)
+        For regression     -> {mae, mse, rmse, r2}
         """
         if self.task in (TaskType.BINARY, TaskType.MULTICLASS):
             return classification_report(self.y_true, self.y_pred, output_dict=True)
@@ -41,7 +41,7 @@ class EvaluationReport:
 
     def report_str(self) -> str:
         """
-        Zwraca tekstowy raport.
+        Returns text raport
         """
         if self.task in (TaskType.BINARY, TaskType.MULTICLASS):
             return classification_report(self.y_true, self.y_pred)

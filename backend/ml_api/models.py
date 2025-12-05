@@ -1,8 +1,6 @@
 from django.db import models
 from django.conf import settings
 
-# Create your models here.
-
 
 class Dataset(models.Model):
     code = models.CharField(max_length=50, unique=True)  # np. "iris", "wine", "sinx"
@@ -85,7 +83,7 @@ class Experiment(models.Model):
     metrics = models.JSONField(default=dict)
     predictions = models.JSONField(null=True, blank=True)
 
-    # Later you can add: training_log, visualizations, etc.
+    # Later: training_log, visualizations, etc.
     # training_log = models.JSONField(null=True, blank=True)
     # visualizations = models.JSONField(null=True, blank=True)
 

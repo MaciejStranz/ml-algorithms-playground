@@ -48,10 +48,9 @@ def _build_model(
     """
     Construct a model instance based on algorithm name and task.
 
-    - All algorithms (including MLP) przechodzą przez walidację hiperparametrów
-      w oparciu o HyperparameterSpec (validate_hyperparameters).
-    - Modele klasyczne używają get_classical_model.
-    - Modele głębokie używają get_deep_model.
+    - All algorithms get their hyperparameters validated based on HyperparameterSpec (validate_hyperparameters)
+    - Classic models use get_classical_model.
+    - Deep models use get_deep_model.
     """
     hyperparams = hyperparams or {}
 

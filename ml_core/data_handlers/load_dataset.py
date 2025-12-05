@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Callable, Tuple
+from typing import Callable, Tuple, List
 import math
 import numpy as np
 from sklearn.datasets import load_iris, load_wine, load_breast_cancer, load_diabetes
@@ -25,7 +25,7 @@ def _load_iris() -> Tuple[Tuple[np.ndarray, np.ndarray], DatasetMeta]:
         n_samples=bunch.data.shape[0],
         n_features=bunch.data.shape[1],
         n_classes=len(set(bunch.target)),
-        class_labels=list(bunch.target_names),
+        class_labels=[str(n) for n in list(bunch.target_names)],
         feature_names=list(bunch.feature_names),
         target_name="species",
     )
@@ -41,7 +41,7 @@ def _load_wine() -> Tuple[Tuple[np.ndarray, np.ndarray], DatasetMeta]:
         n_samples=bunch.data.shape[0],
         n_features=bunch.data.shape[1],
         n_classes=len(set(bunch.target)),
-        class_labels=list(bunch.target_names),
+        class_labels=[str(n) for n in list(bunch.target_names)],
         feature_names=list(bunch.feature_names),
         target_name="class",
     )
@@ -56,7 +56,7 @@ def _load_breast_cancer() -> Tuple[Tuple[np.ndarray, np.ndarray], DatasetMeta]:
         n_samples=bunch.data.shape[0],
         n_features=bunch.data.shape[1],
         n_classes=len(set(bunch.target)),
-        class_labels=list(bunch.target_names),
+        class_labels=[str(n) for n in list(bunch.target_names)],
         feature_names=list(bunch.feature_names),
         target_name="class",
     )
@@ -108,7 +108,7 @@ DATASET_LOADERS: dict[str, Callable[[], Tuple[Tuple[np.ndarray, np.ndarray], Dat
     "wine": _load_wine,
     "breast_cancer": _load_breast_cancer,
     "diabetes": _load_diabetes,
-    "sinx": _regression_sin,
+    "sinus": _regression_sin,
 }
 
 
@@ -141,3 +141,14 @@ def load_data(
         y_test=y_test,
         meta=meta,
     )
+
+
+def get_all_dataset_meta() -> List[DatasetMeta]:
+    """
+    Returns list of metadata for available datasets
+    """
+    metas: List[DatasetMeta] = []
+    for name, loader in DATASET_LOADERS.items():
+        (_, _), meta = loader()
+        metas.append(meta)
+    return metas

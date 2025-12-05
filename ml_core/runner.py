@@ -8,7 +8,7 @@ from typing import Any, Dict, Optional
 import numpy as np
 
 from ml_core.data_handlers.load_dataset import load_data, Dataset
-from ml_core.data_handlers.metadata import DatasetMeta, TaskType
+from ml_core.common.types import TaskType
 from ml_core.algorithms.classical import get_classical_model
 from ml_core.algorithms.deep.mlp import get_deep_model
 from ml_core.evaluation.metrics import EvaluationReport

@@ -246,7 +246,7 @@ XGB_HPARAMS: List[HyperparameterSpec] = [
 #  Logistic / Linear Regression Hyperparameters
 
 
-LOGISTIC_HPARAMS: List[HyperparameterSpec] = [
+REGRESSION_HPARAMS: List[HyperparameterSpec] = [
     HyperparameterSpec(
         name="C",
         display_name="C (Inverse regularization strength)",
@@ -370,7 +370,7 @@ ALGORITHM_HPARAMS: Dict[str, List[HyperparameterSpec]] = {
     "svm": SVM_HPARAMS,
     "random_forest": RF_HPARAMS,
     "xgboost": XGB_HPARAMS,
-    "logistic": LOGISTIC_HPARAMS,
+    "regression": REGRESSION_HPARAMS,
     "mlp" : MLP_HPARAMS,
 }
 

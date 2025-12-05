@@ -42,7 +42,7 @@ def _xgb_factory(task: TaskType, params: Dict[str, Any] | None):
         raise ValueError(f"XGBoost: unsupported task {task}")
 
 
-def _logreg_factory(task: TaskType, params: Dict[str, Any] | None):
+def _reg_factory(task: TaskType, params: Dict[str, Any] | None):
     params = params or {}
     if task in (TaskType.BINARY, TaskType.MULTICLASS):
         return LogisticRegression(**{"max_iter": 1000, **params})
@@ -56,7 +56,7 @@ _MODEL_FACTORIES = {
     "svm": _svm_factory,
     "random_forest": _rf_factory,
     "xgboost": _xgb_factory,
-    "logistic": _logreg_factory,
+    "regression": _reg_factory,
 }
 
 

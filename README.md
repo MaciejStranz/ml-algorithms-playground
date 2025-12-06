@@ -33,7 +33,7 @@ This project demonstrates backend engineering, ML engineering, API design, and f
 - Wine — multiclass classification  
 - Breast Cancer — binary classification  
 - Diabetes — regression  
-- Synthetic Sinus Function — regression
+- Synthetic Sinusoidal Function — regression
 
 ### Synchronization with Django
 All metadata of datasets and algorithms is stored in **ml_core module**, in order to automatically feed Django database with this data 2 sync commends were prepared:
@@ -58,6 +58,14 @@ Each experiment stores:
 - metrics summary
 - dataset & algorithm metadata
 
+Experiment status values:
+- `running`
+- `finished`
+- `failed`
+
+In subsequent stages of the project, it is planned to use background jobs (Celery) to conduct training.
+In this case, the experiment will have the status “running”. Currently, everything is carried out synchronously.
+
 ---
 
 ## 🧩 REST API (Django REST Framework)
@@ -70,13 +78,6 @@ GET /api/experiments/
 POST /api/experiments/
 GET /api/experiments/<id>/
 ```
-Experiment status values:
-- `running`
-- `finished`
-- `failed`
-
-In subsequent stages of the project, it is planned to use background jobs (Celery) to conduct training.
-In this case, the experiment will have the status “in progress.” Currently, everything is carried out synchronously.
 
 ---
 
@@ -93,6 +94,180 @@ POST /api/experiments/
 "include_probabilities": true
 }
 ```
+**And response:**
+```
+{
+    "dataset": 1,
+    "algorithm": 1,
+    "hyperparameters": {
+        "C": 1.0,
+        "kernel": "rbf"
+    },
+    "test_size": 0.3,
+    "random_state": 42,
+    "include_predictions": true,
+    "include_probabilities": true
+}
+```
+**Then in GET /api/experiments/ can be found:**
+```
+{
+        "id": 11,
+        "dataset": {
+            "id": 1,
+            "name": "Iris"
+        },
+        "algorithm": {
+            "id": 1,
+            "name": "Support Vector Machine"
+        },
+        "task": "multiclass_classification",
+        "created_at": "2025-12-06T03:08:18.950169Z",
+        "status": "finished",
+        "hyperparameters": {
+            "C": 1.0,
+            "kernel": "rbf"
+        },
+        "metrics": {
+            "0": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1-score": 1.0,
+                "support": 15.0
+            },
+            "1": {
+                "precision": 0.875,
+                "recall": 0.9333333333333333,
+                "f1-score": 0.9032258064516129,
+                "support": 15.0
+            },
+            "2": {
+                "precision": 0.9285714285714286,
+                "recall": 0.8666666666666667,
+                "f1-score": 0.896551724137931,
+                "support": 15.0
+            },
+            "accuracy": 0.9333333333333333,
+            "macro avg": {
+                "precision": 0.9345238095238096,
+                "recall": 0.9333333333333332,
+                "f1-score": 0.9332591768631814,
+                "support": 45.0
+            },
+            "weighted avg": {
+                "precision": 0.9345238095238095,
+                "recall": 0.9333333333333333,
+                "f1-score": 0.9332591768631814,
+                "support": 45.0
+            }
+        }
+    },
+```
+
+## 📤 Example API Response GET /api/experiments/
+```
+{
+        "id": 7,
+        "dataset": {
+            "id": 5,
+            "name": "Sinusoid Function"
+        },
+        "algorithm": {
+            "id": 5,
+            "name": "Neural Network (MLP, PyTorch)"
+        },
+        "task": "regression",
+        "created_at": "2025-12-06T02:09:41.798903Z",
+        "status": "finished",
+        "hyperparameters": {},
+        "metrics": {
+            "mae": 0.018116901112086824,
+            "mse": 0.0007040143884720487,
+            "rmse": 0.02653326946442991,
+            "r2": 0.9985618258401496
+        }
+    },
+    {
+        "id": 6,
+        "dataset": {
+            "id": 1,
+            "name": "Iris"
+        },
+        "algorithm": {
+            "id": 1,
+            "name": "Support Vector Machine"
+        },
+        "task": "multiclass_classification",
+        "created_at": "2025-12-06T02:02:48.708007Z",
+        "status": "finished",
+        "hyperparameters": {
+            "kernel": "linear"
+        },
+        "metrics": {
+            "0": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1-score": 1.0,
+                "support": 10.0
+            },
+            "1": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1-score": 1.0,
+                "support": 10.0
+            },
+            "2": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1-score": 1.0,
+                "support": 10.0
+            },
+            "accuracy": 1.0,
+            "macro avg": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1-score": 1.0,
+                "support": 30.0
+            },
+            "weighted avg": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1-score": 1.0,
+                "support": 30.0
+            }
+        }
+    },
+```
+## ⚙️ Local Development
+First clone repo:
+```
+git clone https://github.com/MaciejStranz/ml-algorithms-playground.git
+cd ml-algorithms-playground
+```
+After cloning repo create virtual env:
+```
+python -m venv venv
+venv\Scripts\activate
+```
+
+Install dependencies:
+```
+pip install -r requirements.txt
+```
+
+Django database migriations and data sync:
+```
+cd backend
+python manage.py migrate
+python manage.py makemigrations
+python sync_datasets
+python sync_algorithms
+```
+And finally run development server:
+```
+python manage.py runserver
+```
+
 
 ## 🛠 Technology Stack
 
@@ -108,6 +283,6 @@ POST /api/experiments/
 - PostgreSQL or SQLite  
 
 ### Frontend (planned)
-- React + TypeScript  
+- React   
 
 

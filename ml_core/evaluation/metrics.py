@@ -22,10 +22,6 @@ class EvaluationReport:
     task: TaskType
     target_names: Optional[Iterable[str]] = None
 
-    # ---------------------------------------
-    #  Public API
-    # ---------------------------------------
-
     def summary(self) -> Dict[str, Any]:
         """
         Returns metrics as dictionary (dict).

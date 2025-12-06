@@ -51,8 +51,8 @@ class ExperimentListSerializer(serializers.ModelSerializer):
     Includes basic metadata, status and top-level metrics.
     """
 
-    dataset = DatasetSerializer(read_only=True)
-    algorithm = AlgorithmSerializer(read_only=True)
+    dataset = serializers.SerializerMethodField()
+    algorithm = serializers.SerializerMethodField()
 
     class Meta:
         model = Experiment
@@ -63,8 +63,20 @@ class ExperimentListSerializer(serializers.ModelSerializer):
             "task",
             "created_at",
             "status",
+            "hyperparameters",
             "metrics",
         ]
+    def get_dataset(self, obj):
+        return {
+            "id": obj.dataset.id,
+            "name": obj.dataset.name,
+        }
+
+    def get_algorithm(self, obj):
+        return {
+            "id": obj.algorithm.id,
+            "name": obj.algorithm.name,
+        }
 
 
 class ExperimentDetailSerializer(serializers.ModelSerializer):
@@ -100,11 +112,13 @@ class ExperimentCreateSerializer(serializers.Serializer):
     """
     Input payload for creating a new experiment.
 
-    The actual training is delegated to ml_core.runner.run_experiment.
+    Uses foreign keys to Dataset and Algorithm models via DRF relation fields.
     """
 
-    dataset_id = serializers.IntegerField()
-    algorithm_id = serializers.IntegerField()
+    # Foreign keys – DRF will resolve IDs to model instances automatically.
+    dataset = serializers.PrimaryKeyRelatedField(queryset=Dataset.objects.all())
+    algorithm = serializers.PrimaryKeyRelatedField(queryset=Algorithm.objects.all())
+
     hyperparameters = serializers.DictField(
         child=serializers.JSONField(),
         required=False,
@@ -115,25 +129,3 @@ class ExperimentCreateSerializer(serializers.Serializer):
     random_state = serializers.IntegerField(required=False, default=42)
     include_predictions = serializers.BooleanField(required=False, default=True)
     include_probabilities = serializers.BooleanField(required=False, default=False)
-
-    def validate(self, attrs):
-        """
-        Resolve dataset and algorithm instances and perform basic validation.
-
-        More advanced validation (e.g. hyperparameter schema) is performed
-        inside ml_core via validate_hyperparameters and run_experiment.
-        """
-        try:
-            dataset = Dataset.objects.get(id=attrs["dataset_id"])
-        except Dataset.DoesNotExist:
-            raise serializers.ValidationError({"dataset_id": "Dataset not found."})
-
-        try:
-            algorithm = Algorithm.objects.get(id=attrs["algorithm_id"])
-        except Algorithm.DoesNotExist:
-            raise serializers.ValidationError({"algorithm_id": "Algorithm not found."})
-
-        attrs["dataset"] = dataset
-        attrs["algorithm"] = algorithm
-        attrs["hyperparameters"] = attrs.get("hyperparameters") or {}
-        return attrs

@@ -1,4 +1,3 @@
-# ml_core/demo.py
 from ml_core.algorithms.classical import get_classical_model
 from ml_core.data_handlers.load_dataset import load_data
 from sklearn.metrics import classification_report

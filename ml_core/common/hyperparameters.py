@@ -1,5 +1,3 @@
-# ml_core/common/hyperparams.py
-
 from __future__ import annotations
 
 from dataclasses import dataclass, asdict
@@ -66,8 +64,6 @@ def specs_to_dict_list(specs: List[HyperparameterSpec]) -> List[Dict[str, Any]]:
     """Helper to convert a list of specs into a list of dicts for JSON."""
     return [spec.to_dict() for spec in specs]
 
-
-# ---------- Generic single-parameter validation (no cross-parameter deps) ----------
 
 def validate_value_against_spec(spec: HyperparameterSpec, value: Any) -> None:
     """
@@ -174,9 +170,6 @@ def validate_params_against_specs(
     Returns a sanitized dict.
     Raises ValueError on any validation issue.
 
-    NOTE: This function does NOT enforce cross-parameter dependencies
-    on purpose. Things like 'gamma' vs 'kernel' are left to the underlying
-    library (e.g. sklearn SVC/SVR), which already knows how to handle them.
     """
     validated: Dict[str, Any] = {}
 

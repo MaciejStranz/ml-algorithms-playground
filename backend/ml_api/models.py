@@ -3,6 +3,12 @@ from django.conf import settings
 
 
 class Dataset(models.Model):
+    """
+    Metadata for datasets available in the system.
+
+    The 'code' field must match the identifier used inside ml_core
+    (e.g. "iris").
+    """
     code = models.CharField(max_length=50, unique=True)  # np. "iris", "wine", "sinx"
     name = models.CharField(max_length=100)
     task = models.CharField(max_length=20)  # "binary" | "multiclass" | "regression"

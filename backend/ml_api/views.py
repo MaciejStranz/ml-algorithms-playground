@@ -1,9 +1,12 @@
 from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.exceptions import ValidationError
+from rest_framework import generics
+from django.contrib.auth.models import User
 
 from ml_api.models import Dataset, Algorithm, Experiment
 from ml_api.serializers import (
+    UserSerializer,
     DatasetSerializer,
     AlgorithmSerializer,
     ExperimentListSerializer,
@@ -12,6 +15,12 @@ from ml_api.serializers import (
 )
 
 from ml_core.runner import RunConfig, run_experiment
+
+
+class CreateUserView(generics.CreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [AllowAny]
 
 
 class DatasetViewSet(ReadOnlyModelViewSet):

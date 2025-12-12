@@ -13,9 +13,9 @@ function ProtectedRoute({children}) {
     }, [])
 
     const refreshToken = async () => {
-        refreshToken = localStorage.getItem(REFRESH_TOKEN)
+        const refresh = localStorage.getItem(REFRESH_TOKEN)
         try {
-            const res = api.post("/api/token/refresh/", {refresh: refreshToken})
+            const res = await api.post("/api/token/refresh/", {refresh: refresh})
             if (res.status === 200) {
                 localStorage.setItem(ACCESS_TOKEN, res.data.access)
                 setIsAuthorized(true)
@@ -44,10 +44,11 @@ function ProtectedRoute({children}) {
             setIsAuthorized(true)
         }
 
-        if (isAuthorized === null) {
-            return <div>Loading...</div>
-        }
     };
+
+    if (isAuthorized === null) {
+        return <div>Loading...</div>
+    }
 
     return isAuthorized ? children : <Navigate to="/login" />
 }

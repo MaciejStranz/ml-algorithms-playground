@@ -70,6 +70,9 @@ In this case, the experiment will have the status “running”. Currently, ever
 
 ## 🧩 REST API (Django REST Framework)
 
+### JWT Authorization
+Implemented user authorization using built in Django functionalities basing on JWT.
+
 ### Available endpoints:
 ```
 GET /api/datasets/
@@ -238,6 +241,11 @@ POST /api/experiments/
         }
     },
 ```
+## Frontend 
+Currently developed basic login and register pages with authentication logic based on JWT. 
+![Register Page](register_page.jpg)
+
+
 ## ⚙️ Local Development
 First clone repo:
 ```
@@ -280,9 +288,10 @@ python manage.py runserver
 ### Backend
 - Django  
 - Django REST Framework  
-- PostgreSQL or SQLite  
+- SQLite  
 
 ### Frontend (planned)
-- React   
+- React
+- Tailwind
 
 

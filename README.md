@@ -70,8 +70,10 @@ In this case, the experiment will have the status “running”. Currently, ever
 
 ## 🧩 REST API (Django REST Framework)
 
-### JWT Authorization
-Implemented user authorization using built in Django functionalities basing on JWT.
+### 🔐 JWT Authentication 
+The backend authentication layer is implemented using JWT (JSON Web Tokens) provided by Django REST Framework SimpleJWT.
+Users authenticate via token-based login, receiving an access token for API authorization and a refresh token for session renewal.
+Protected API endpoints require a valid access token, ensuring secure and stateless communication between the frontend and backend.
 
 ### Available endpoints:
 ```
@@ -242,7 +244,9 @@ POST /api/experiments/
     },
 ```
 ## Frontend 
-Currently developed basic login and register pages with authentication logic based on JWT. 
+The frontend is built with React and includes basic login and registration pages integrated with the backend JWT authentication flow.
+Protected routes ensure that only authenticated users can access secured views.
+The UI is styled using Tailwind CSS.
 ![Register Page](register_page.jpg)
 
 

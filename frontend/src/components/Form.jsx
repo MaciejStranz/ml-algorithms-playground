@@ -32,12 +32,27 @@ function Form({ route, method }) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800 px-4">
+      
+      {/* === MAIN TITLE === */}
+      <h1 className="mb-12 text-center text-5xl md:text-6xl font-extrabold tracking-tight text-white">
+        <span className="bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">
+          Machine Learning
+        </span>
+        <br />
+        <span className="text-slate-300">
+          Algorithms Playground
+        </span>
+      </h1>
+
+      {/* === FORM === */}
       <form
         onSubmit={handleSubmit}
         className="w-full max-w-md bg-slate-900/80 backdrop-blur border border-slate-700 rounded-2xl shadow-xl p-8 space-y-6"
       >
-        <h1 className="text-3xl font-bold text-center text-white">{name}</h1>
+        <h2 className="text-3xl font-bold text-center text-white">
+          {name}
+        </h2>
 
         <div className="space-y-4">
           <input
@@ -60,12 +75,14 @@ function Form({ route, method }) {
         <button
           className="w-full py-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed"
           type="submit"
+          disabled={loading}
         >
-          {name}
+          {loading ? "Loading..." : name}
         </button>
       </form>
     </div>
   );
 }
+
 
 export default Form;

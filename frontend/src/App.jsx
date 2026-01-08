@@ -7,6 +7,7 @@ import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ExperimentCreator from "./pages/ExperimentCreator";
 import Navbar from "./components/Navbar";
+import Datasets from "./pages/Datasets";
 
 function Logout() {
   localStorage.clear();
@@ -36,6 +37,14 @@ function App() {
           element={
             <ProtectedRoute>
               <ExperimentCreator />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/datasets"
+          element={
+            <ProtectedRoute>
+              <Datasets />
             </ProtectedRoute>
           }
         />

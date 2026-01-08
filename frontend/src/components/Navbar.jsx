@@ -2,13 +2,13 @@ import { Link, NavLink, replace, useNavigate } from "react-router-dom";
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "../constants";
 
 export default function Navbar() {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
-    function handleLogout() {
-        localStorage.removeItem(ACCESS_TOKEN);
-        localStorage.removeItem(REFRESH_TOKEN);
-        navigate("/login", {replace: true});
-    }
+  function handleLogout() {
+    localStorage.removeItem(ACCESS_TOKEN);
+    localStorage.removeItem(REFRESH_TOKEN);
+    navigate("/login", { replace: true });
+  }
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-700 bg-slate-900/80 backdrop-blur">
@@ -31,6 +31,19 @@ export default function Navbar() {
             }
           >
             Home
+          </NavLink>
+
+          <NavLink
+            to="/datasets"
+            className={({ isActive }) =>
+              `rounded-lg px-3 py-2 text-sm font-semibold transition ${
+                isActive
+                  ? "text-white bg-slate-800"
+                  : "text-slate-300 hover:text-white hover:bg-slate-800/60"
+              }`
+            }
+          >
+            Datasets
           </NavLink>
 
           <NavLink

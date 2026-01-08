@@ -20,8 +20,6 @@ export default function ExperimentsList() {
 
       try {
         const data = await fetchExperiments({ signal: controller.signal });
-        console.log("experiments response:", data);
-        console.log("isArray:", Array.isArray(data), "length:", data?.length);
         const items = Array.isArray(data) ? data : (data?.results ?? []);
         setExperiments(items);
       } catch (err) {

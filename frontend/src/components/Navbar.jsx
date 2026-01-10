@@ -46,6 +46,20 @@ export default function Navbar() {
             Datasets
           </NavLink>
 
+
+          <NavLink
+            to="/algorithms"
+            className={({ isActive }) =>
+              `rounded-lg px-3 py-2 text-sm font-semibold transition ${
+                isActive
+                  ? "text-white bg-slate-800"
+                  : "text-slate-300 hover:text-white hover:bg-slate-800/60"
+              }`
+            }
+          >
+            Algorithms
+          </NavLink>
+
           <NavLink
             to="/experiments/new"
             className={({ isActive }) =>

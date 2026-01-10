@@ -8,6 +8,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import ExperimentCreator from "./pages/ExperimentCreator";
 import Navbar from "./components/Navbar";
 import Datasets from "./pages/Datasets";
+import Algorithms from "./pages/Algorithms";
 
 function Logout() {
   localStorage.clear();
@@ -45,6 +46,14 @@ function App() {
           element={
             <ProtectedRoute>
               <Datasets />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/algorithms"
+          element={
+            <ProtectedRoute>
+              <Algorithms />
             </ProtectedRoute>
           }
         />

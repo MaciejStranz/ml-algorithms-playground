@@ -8,3 +8,8 @@ export async function fetchExperiments({signal} = {}) {
 export async function deleteExperiment(id) {
     const res = await api.delete(`api/experiments/${id}/`);
 }
+
+export async function createExperiment(payload) {
+  const res = await api.post("/api/experiments/", payload);
+  return res.data;
+}

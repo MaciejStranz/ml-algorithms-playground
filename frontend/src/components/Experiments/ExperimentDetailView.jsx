@@ -44,12 +44,23 @@ function statusVariant(status) {
   return "neutral";
 }
 
-function pickPrimaryMetric(experiment) {
-  const task = experiment?.task;
-  const metrics = experiment?.metrics || {};
-  if (task?.endsWith("_classification")) return metrics?.accuracy ?? null;
-  if (task === "regression") return metrics?.r2 ?? null;
-  return null;
+function getPrimaryMetric(experiment) {
+  const task = (experiment.task || "").toLowerCase();
+  const metrics = experiment.metrics || {};
+
+  const isRegression = task.includes("regression");
+
+  if (isRegression) {
+    const r2 = metrics.r2;
+    return typeof r2 === "number"
+      ? { label: "R²", value: r2.toFixed(4) }
+      : { label: "R²", value: "—" };
+  }
+
+  const acc = metrics.accuracy;
+  return typeof acc === "number"
+    ? { label: "Accuracy", value: `${(acc * 100).toFixed(1)}%` }
+    : { label: "Accuracy", value: "—" };
 }
 
 export default function ExperimentDetailView({ experimentId }) {
@@ -68,7 +79,7 @@ export default function ExperimentDetailView({ experimentId }) {
   );
 
   const primaryMetric = useMemo(
-    () => (experiment ? pickPrimaryMetric(experiment) : null),
+    () => (experiment ? getPrimaryMetric(experiment) : null),
     [experiment]
   );
 
@@ -160,7 +171,7 @@ export default function ExperimentDetailView({ experimentId }) {
           <h2 className="text-xl font-bold text-white">Summary</h2>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <Stat label="Primary metric" value={primaryMetric} />
+            <Stat label={primaryMetric.label} value={primaryMetric.value} />
             <Stat label="Test size" value={experiment.test_size ?? "—"} />
             <Stat label="Random state" value={experiment.random_state ?? "—"} />
           </div>

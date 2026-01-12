@@ -132,12 +132,12 @@ RF_HPARAMS: List[HyperparameterSpec] = [
         name="max_features",
         display_name="Max features",
         type=ParamType.NUMBER_OR_STRING,
-        default="auto",
+        default=1.0,
         # For RandomForest, max_features can be:
         # - int (number of features),
         # - float (fraction of features),
         # - string: 'auto', 'sqrt', 'log2'
-        choices=["auto", "sqrt", "log2"],
+        choices=["sqrt", "log2"],
         description=(
             "The number of features to consider when looking for the best split. "
             "Can be an integer (number of features), a float (fraction of features), "

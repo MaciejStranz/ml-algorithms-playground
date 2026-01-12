@@ -135,11 +135,13 @@ export default function ExperimentCreatorWizard() {
         include_probabilities: isClassification ? includeProbabilities : false,
       };
 
+      console.log(payload) //debuging
       const created = await createExperiment(payload);
 
       // MVP: go back to Home (experiments list)
       // Later: navigate(`/experiments/${created.id}`)
       navigate("/", { replace: true });
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
     } catch (err) {
       const msg =
         err?.response?.data?.detail ||

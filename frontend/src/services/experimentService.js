@@ -13,3 +13,9 @@ export async function createExperiment(payload) {
   const res = await api.post("/api/experiments/", payload);
   return res.data;
 }
+
+export async function fetchExperimentById(id, { signal } = {}) {
+  const res = await api.get(`/api/experiments/${id}/`, { signal });
+  return res.data;
+}
+

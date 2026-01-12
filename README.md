@@ -243,10 +243,43 @@ POST /api/experiments/
         }
     },
 ```
-## Frontend 
-The frontend is built with React and includes basic login and registration pages integrated with the backend JWT authentication flow.
-Protected routes ensure that only authenticated users can access secured views.
-The UI is styled using Tailwind CSS.
+## 🌐 Frontend (React)
+
+The frontend is implemented as a modern **single-page application (SPA)** built with **React** and **Vite**.
+
+### Key features
+- **JWT-based authentication flow**
+  - Login and registration forms
+  - Token storage and automatic authorization via Axios interceptors
+  - Protected routes preventing access for unauthenticated users
+
+- **Experiment management**
+  - List view displaying all experiments created by the authenticated user
+  - Status-aware UI (`running`, `finished`, `failed`)
+  - Summary metrics (Accuracy for classification, R² for regression)
+  - Detailed experiment view including:
+    - Dataset and algorithm metadata
+    - Hyperparameters
+    - Full metrics output
+    - Optional predictions
+  - Experiment deletion with confirmation
+
+- **Experiment creation wizard**
+  - Dataset selection using interactive cards
+  - Algorithm selection filtered by dataset task type
+  - Dynamic hyperparameter form generated from backend metadata
+  - Automatic payload validation before submission
+  - Redirect to experiment list after successful execution
+
+- **Architecture & code quality**
+  - Feature-oriented component structure
+  - Thin routing pages with logic encapsulated in feature components
+  - Shared data-fetching logic via reusable hooks
+  - Strict separation between UI, services, and business logic
+
+- **Styling**
+  - Tailwind CSS for consistent, responsive UI
+  - Status-aware badges and semantic visual hierarchy
 ![Register Page](register_page.jpg)
 
 
@@ -284,7 +317,8 @@ python manage.py runserver
 ## 🛠 Technology Stack
 
 ### Machine Learning
-- Python, NumPy  
+- Python
+- NumPy 
 - scikit-learn  
 - XGBoost  
 - PyTorch  
@@ -296,6 +330,7 @@ python manage.py runserver
 
 ### Frontend (planned)
 - React
+- Vite
 - Tailwind
 
 

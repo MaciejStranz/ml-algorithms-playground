@@ -252,6 +252,7 @@ The frontend is implemented as a modern **single-page application (SPA)** built 
   - Login and registration forms
   - Token storage and automatic authorization via Axios interceptors
   - Protected routes preventing access for unauthenticated users
+![Register Page](images/register_page.jpg)
 
 - **Experiment management**
   - List view displaying all experiments created by the authenticated user
@@ -263,6 +264,11 @@ The frontend is implemented as a modern **single-page application (SPA)** built 
     - Full metrics output
     - Optional predictions
   - Experiment deletion with confirmation
+![History of experiments](images/home.jpg)
+![Available datasets](images/datasets.jpg)
+![Available algorithms](images/algorithms.jpg)
+![Experiment detail 1](images/experiment_detail_1.jpg)
+![Experiment detail 2](images/experiment_detail_2.jpg)
 
 - **Experiment creation wizard**
   - Dataset selection using interactive cards
@@ -270,6 +276,10 @@ The frontend is implemented as a modern **single-page application (SPA)** built 
   - Dynamic hyperparameter form generated from backend metadata
   - Automatic payload validation before submission
   - Redirect to experiment list after successful execution
+![Experiment creator 1](images/experiment_creator_1.jpg)
+![Experiment creator 2](images/experiment_creator_2.jpg)
+![Experiment creator 3](images/experiment_creator_3.jpg)
+![Experiment creator 4](images/experiment_creator_4.jpg)
 
 - **Architecture & code quality**
   - Feature-oriented component structure
@@ -280,7 +290,6 @@ The frontend is implemented as a modern **single-page application (SPA)** built 
 - **Styling**
   - Tailwind CSS for consistent, responsive UI
   - Status-aware badges and semantic visual hierarchy
-![Register Page](register_page.jpg)
 
 
 ## ⚙️ Local Development

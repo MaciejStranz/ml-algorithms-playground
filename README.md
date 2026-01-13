@@ -346,6 +346,9 @@ python manage.py runserver
 
 Planned improvements focus on scalability, usability, and deeper experiment analysis:
 
+- **Containerization & deployment**
+  - Dockerize the entire stack (backend + ml_core + frontend + supporting services) to enable reproducible local setup and smoother deployment.
+
 - **Asynchronous experiment execution**
   - Move model training and evaluation to background jobs using **Celery** and a message broker.
   - Enable true `running` experiment states with non-blocking API requests and progress tracking.
@@ -368,6 +371,8 @@ Planned improvements focus on scalability, usability, and deeper experiment anal
     - Learning curves
     - Additional task-specific metrics
   - Improve experiment interpretability and result analysis.
+
+
 
 
 

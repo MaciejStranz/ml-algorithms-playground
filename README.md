@@ -342,4 +342,33 @@ python manage.py runserver
 - Vite
 - Tailwind
 
+## 🛣️ Roadmap / Future Development
+
+Planned improvements focus on scalability, usability, and deeper experiment analysis:
+
+- **Asynchronous experiment execution**
+  - Move model training and evaluation to background jobs using **Celery** and a message broker.
+  - Enable true `running` experiment states with non-blocking API requests and progress tracking.
+
+- **Model persistence & reuse**
+  - Persist trained models and preprocessing artifacts.
+  - Allow users to reload trained models for inference without retraining.
+
+- **User-provided data & inference**
+  - Enable users to upload custom datasets.
+  - Automatically run predictions using selected or previously trained models and return results via the API and UI.
+
+- **Experiment comparison**
+  - Introduce a dedicated view for **side-by-side comparison of two experiments**.
+  - Compare hyperparameters, datasets, algorithms, and key performance metrics.
+
+- **Extended evaluation & visualization**
+  - Add advanced metrics and diagnostics:
+    - Confusion matrix
+    - Learning curves
+    - Additional task-specific metrics
+  - Improve experiment interpretability and result analysis.
+
+
+
 

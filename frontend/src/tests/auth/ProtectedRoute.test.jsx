@@ -6,7 +6,6 @@ import { server } from "../testServer";
 import ProtectedRoute from "../../components/ProtectedRoute";
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "../../constants";
 
-
 /**
  * Simple component used as protected content.
  */
@@ -109,5 +108,27 @@ describe("ProtectedRoute", () => {
 
     // And localStorage should contain the refreshed access token
     expect(localStorage.getItem(ACCESS_TOKEN)).toBe(newAccess);
+  });
+
+  it("redirects to /login when access token is expired and refresh fails", async () => {
+    // Arrange: expired access token + refresh token
+    const expiredAccess = createExpiredJwt();
+    localStorage.setItem("access", expiredAccess);
+    localStorage.setItem("refresh", "dummy-refresh-token");
+
+    // Mock refresh endpoint to fail
+    const refreshUrl = "http://localhost:8000/api/token/refresh/";
+
+    server.use(
+      http.options(refreshUrl, () => new HttpResponse(null, { status: 204 })),
+      http.post(refreshUrl, async () => {
+        return new HttpResponse(null, { status: 401 });
+      })
+    );
+
+    renderProtectedApp("/");
+
+    expect(await screen.findByText("LOGIN")).toBeInTheDocument();
+    expect(screen.queryByText("SECRET")).not.toBeInTheDocument();
   });
 });

@@ -354,7 +354,7 @@ python manage.py runserver
 - Django REST Framework  
 - SQLite  
 
-### Frontend (planned)
+### Frontend 
 - React
 - Vite
 - Tailwind

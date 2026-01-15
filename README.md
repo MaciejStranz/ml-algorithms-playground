@@ -291,6 +291,23 @@ The frontend is implemented as a modern **single-page application (SPA)** built 
   - Tailwind CSS for consistent, responsive UI
   - Status-aware badges and semantic visual hierarchy
 
+## 🧪 Tests
+
+The project is planned to include automated tests covering all three layers of the system, with each layer tested according to its responsibility.
+
+### Frontend (React)
+
+Frontend tests focus on critical user flows and UI behavior, including authentication, protected routes, experiment listing, experiment details, and the experiment creation wizard.
+Tests are written as integration-style component tests using Vitest, React Testing Library, and MSW (Mock Service Worker) for API mocking.
+
+### Backend (Django REST Framework)
+
+In progress
+
+### ml_core
+
+In progress
+
 
 ## ⚙️ Local Development
 First clone repo:

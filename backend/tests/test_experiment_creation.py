@@ -4,6 +4,26 @@ from unittest.mock import patch
 from ml_api.models import Experiment
 
 
+
+@pytest.mark.django_db
+def test_experiments_create_requires_auth(dataset_iris, algo_svm, api_client):
+    """
+    Create endpoint must require authentication.
+    """
+
+    payload = {
+        "dataset": dataset_iris.id,
+        "algorithm": algo_svm.id,
+        "hyperparameters": {},
+        "test_size": 0.3,
+        "random_state": 42,
+        "include_predictions": True,
+        "include_probabilities": False,
+    }
+
+    res = api_client.post("/api/experiments/", payload, format="json")
+    assert res.status_code == 401
+
 @pytest.mark.django_db
 def test_create_experiment_success(
     auth_client, user, dataset_iris, algo_svm
@@ -92,4 +112,29 @@ def test_create_experiment_error(
     # On failure, we should not persist metrics/predictions from runner.
     assert exp.metrics == {}
     assert exp.predictions is None
+
+@pytest.mark.django_db
+def test_experiments_create_invalid_fk_ids_returns_400(auth_client):
+    """
+    Invalid dataset/algorithm ids should return 400 with field errors.
+    """
+    payload = {
+        "dataset": 999999,       # invalid FK
+        "algorithm": 888888,     # invalid FK
+        "hyperparameters": {},
+        "test_size": 0.3,
+        "random_state": 42,
+        "include_predictions": True,
+        "include_probabilities": False,
+    }
+
+    res = auth_client.post("/api/experiments/", payload, format="json")
+    assert res.status_code == 400
+
+    data = res.json()
+    assert "dataset" in data or "algorithm" in data
+    if "dataset" in data:
+        assert isinstance(data["dataset"], list) and len(data["dataset"]) > 0
+    if "algorithm" in data:
+        assert isinstance(data["algorithm"], list) and len(data["algorithm"]) > 0
 

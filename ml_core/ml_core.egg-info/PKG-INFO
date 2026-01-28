@@ -1,0 +1,15 @@
+Metadata-Version: 2.4
+Name: ml-core
+Version: 0.1.0
+Summary: Core ML engine for ML Algorithms Playground.
+Author: Maciej Stranz
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: numpy
+Requires-Dist: scikit-learn
+Requires-Dist: xgboost
+Requires-Dist: torch
+Provides-Extra: dev
+Requires-Dist: pytest; extra == "dev"
+Requires-Dist: pytest-cov; extra == "dev"
+Requires-Dist: ruff; extra == "dev"

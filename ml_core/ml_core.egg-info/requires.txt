@@ -1,0 +1,9 @@
+numpy
+scikit-learn
+xgboost
+torch
+
+[dev]
+pytest
+pytest-cov
+ruff

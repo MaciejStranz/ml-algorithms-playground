@@ -58,7 +58,7 @@ def svm_base_specs() -> List[HyperparameterSpec]:
     ]
 
 
-def svm_regression_only_specs() -> List[HyperparameterSpec]:
+def svm_regression_specs() -> List[HyperparameterSpec]:
     return [
         HyperparameterSpec(
             name="epsilon",

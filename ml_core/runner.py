@@ -6,11 +6,17 @@ from typing import Any, Dict, Optional
 import numpy as np
 
 from ml_core.data_handlers.load_dataset import load_data, Dataset
-from ml_core.common.types import TaskType, task_family_from_task
+from ml_core.common.types import TaskType
 from ml_core.algorithms.classical import get_classical_model
 from ml_core.algorithms.deep.mlp import get_deep_model
 from ml_core.evaluation.metrics import EvaluationReport
 from ml_core.algorithms.hparam_specs import validate_hyperparameters
+
+
+from ml_core.algorithms.catalog import get_algorithm
+from ml_core.common.types import task_family_from_task
+from ml_core.common.hyperparameters import validate_params_against_specs
+
 
 #  Public config model
 @dataclass
@@ -38,39 +44,50 @@ class RunConfig:
 _DEEP_ALGORITHMS = {"mlp"}
 
 
-def _build_model(
-    algorithm_name: str,
-    task: TaskType,
-    hyperparams: Dict[str, Any] | None,
-):
-    """
-    Construct a model instance based on algorithm name and task.
+# def _build_model(
+#     algorithm_name: str,
+#     task: TaskType,
+#     hyperparams: Dict[str, Any] | None,
+# ):
+#     """
+#     Construct a model instance based on algorithm name and task.
 
-    - All algorithms get their hyperparameters validated based on HyperparameterSpec (validate_hyperparameters)
-    - Classic models use get_classical_model.
-    - Deep models use get_deep_model.
-    """
+#     - All algorithms get their hyperparameters validated based on HyperparameterSpec (validate_hyperparameters)
+#     - Classic models use get_classical_model.
+#     - Deep models use get_deep_model.
+#     """
+#     hyperparams = hyperparams or {}
+
+#     validated_params = validate_hyperparameters(
+#         algorithm_name=algorithm_name,
+#         task=task,
+#         user_params=hyperparams,
+#     )
+
+#     if algorithm_name in _DEEP_ALGORITHMS:
+#         return get_deep_model(
+#             name=algorithm_name,
+#             task=task,
+#             params=validated_params,
+#         )
+
+#     return get_classical_model(
+#         name=algorithm_name,
+#         task=task,
+#         params=validated_params,
+#     )
+
+def _build_model(algorithm_name: str, task: TaskType, hyperparams: Dict[str, Any] | None):
     hyperparams = hyperparams or {}
 
-    validated_params = validate_hyperparameters(
-        algorithm_name=algorithm_name,
-        task=task,
-        user_params=hyperparams,
-    )
+    task_family = task_family_from_task(task)
+    general_algorithm = get_algorithm(algorithm_name)
+    algorithm_variant = general_algorithm.get_variant(task_family)
 
-    if algorithm_name in _DEEP_ALGORITHMS:
-        return get_deep_model(
-            name=algorithm_name,
-            task=task,
-            params=validated_params,
-        )
+    specs_map = {s.name: s for s in algorithm_variant.hyperparams}
+    validated = validate_params_against_specs(specs_map, hyperparams)
 
-    return get_classical_model(
-        name=algorithm_name,
-        task=task,
-        params=validated_params,
-    )
-
+    return algorithm_variant.factory(validated)
 
 def _predictions_to_dict(
     dataset: Dataset,

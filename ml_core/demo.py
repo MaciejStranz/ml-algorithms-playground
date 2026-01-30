@@ -11,7 +11,7 @@ if __name__ == "__main__":
     params = {}
 
     RunConf = RunConfig(dataset_name="wine", 
-                        algorithm_name="regression",
+                        algorithm_name="svm",
                         hyperparams=params)
     result = run_experiment(RunConf)
     print(result)

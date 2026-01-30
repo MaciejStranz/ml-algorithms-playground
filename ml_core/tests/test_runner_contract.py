@@ -1,4 +1,3 @@
-# ml_core/tests/test_runner_contract.py
 import numbers
 
 import pytest
@@ -110,3 +109,41 @@ def test_run_experiment_contract_regression_without_probabilities():
 
     # Regression should NOT expose probabilities
     assert "y_proba" not in preds
+
+
+def test_run_experiment_contract_classification_without_predictions_and_proba():
+    """
+    Contract test for ml_core.runner.run_experiment:
+
+    - returns only a dict with "metrics" 
+    - classification metrics include "accuracy"
+    - when include_predictions=False and include_probabilities=False -> no predictions in result
+    """
+
+    # Use a fast/classical algorithm entry that supports classification
+    config = RunConfig(
+        dataset_name="iris",
+        algorithm_name="regression",
+        hyperparams={},
+        test_size=0.3,
+        random_state=42,
+        include_predictions=False,
+        include_probabilities=False,
+    )
+
+    result = run_experiment(config)
+
+    assert isinstance(result, dict)
+
+    # Metrics contract
+    assert "metrics" in result
+    metrics = result["metrics"]
+    assert isinstance(metrics, dict)
+
+    assert "accuracy" in metrics
+    acc = metrics["accuracy"]
+    assert isinstance(acc, numbers.Real)
+    assert 0.0 <= float(acc) <= 1.0
+
+    # Predictions not in results
+    assert "predictions" not in result

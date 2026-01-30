@@ -33,6 +33,9 @@ class HyperparameterSpec:
     # Short description for tooltips / docs in the UI.
     description: str
 
+    # Indicates if this parameter can be None value
+    nullable: bool = False
+
     # Optional lower/upper bounds (for INT/FLOAT/NUMBER_OR_STRING when numeric).
     min: Optional[float] = None
     max: Optional[float] = None
@@ -42,7 +45,7 @@ class HyperparameterSpec:
 
     # If set, this parameter is only applicable for the given tasks.
     # If None, it is considered valid for all tasks.
-    applicable_tasks: Optional[List[TaskType]] = None
+    applicable_tasks: Optional[List[TaskType]] = None 
 
     # Whether this parameter should be shown in the basic UI
     # (vs. "advanced" / "expert" section).
@@ -72,6 +75,11 @@ def validate_value_against_spec(spec: HyperparameterSpec, value: Any) -> None:
     This does NOT check cross-parameter dependencies – only type, range, and choices.
     Raises ValueError on failure.
     """
+    if value is None:
+        if spec.nullable:
+            return
+        raise ValueError(f"Parameter {spec.name!r} cannot be null.")
+
     t = spec.type
 
     if t in (ParamType.INT, ParamType.FLOAT):

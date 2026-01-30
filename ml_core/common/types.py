@@ -5,6 +5,27 @@ class TaskType(str, Enum):
     MULTICLASS = "multiclass_classification"
     REGRESSION = "regression"
 
+class TaskFamily(str, Enum):
+    """
+    Coarser task grouping used for algorithm variants and UI filtering.
+
+    - BINARY/MULTICLASS -> CLASSIFICATION
+    - REGRESSION -> REGRESSION
+    """
+    CLASSIFICATION = "classification"
+    REGRESSION = "regression"
+
+
+def task_family_from_task(task: TaskType) -> TaskFamily:
+    """
+    Map a concrete TaskType to a TaskFamily.
+    """
+    if task in (TaskType.BINARY, TaskType.MULTICLASS):
+        return TaskFamily.CLASSIFICATION
+    if task == TaskType.REGRESSION:
+        return TaskFamily.REGRESSION
+    raise ValueError(f"Unsupported TaskType: {task!r}")
+
 class ParamType(str, Enum):
     """Generic type of a hyperparameter value."""
     INT = "int"

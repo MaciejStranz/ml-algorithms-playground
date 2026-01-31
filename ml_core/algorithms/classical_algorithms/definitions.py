@@ -16,6 +16,11 @@ from ml_core.algorithms.classical_algorithms.random_forest import (
     rf_classification_specs,
     rf_regression_specs
 )
+from ml_core.algorithms.classical_algorithms.xgboost import (
+    xgb_classifier_factory,
+    xgb_regressor_factory,
+    xgb_base_specs,
+)
 
 
 SVM_DEFINITION = AlgorithmDefinition(
@@ -55,3 +60,24 @@ RF_DEFINITION = AlgorithmDefinition(
         ),
     },
 )
+
+
+XGB_DEFINITION = AlgorithmDefinition(
+    code="xgboost",
+    name="XGBoost",
+    kind="classical",
+    description="Gradient boosting trees (XGBoost) for structured data.",
+    variants={
+        TaskFamily.CLASSIFICATION: AlgorithmVariant(
+            family=TaskFamily.CLASSIFICATION,
+            factory=xgb_classifier_factory,
+            hyperparams=xgb_base_specs(),
+        ),
+        TaskFamily.REGRESSION: AlgorithmVariant(
+            family=TaskFamily.REGRESSION,
+            factory=xgb_regressor_factory,
+            hyperparams=xgb_base_specs(),
+        ),
+    },
+)
+

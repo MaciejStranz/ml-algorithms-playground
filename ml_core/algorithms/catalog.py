@@ -3,12 +3,13 @@ from __future__ import annotations
 from typing import Dict
 
 from ml_core.algorithms.algorithm_registry import AlgorithmDefinition
-from ml_core.algorithms.classical_algorithms.definitions import SVM_DEFINITION, RF_DEFINITION
+from ml_core.algorithms.classical_algorithms.definitions import SVM_DEFINITION, RF_DEFINITION, XGB_DEFINITION
 
 
 ALGORITHMS: Dict[str, AlgorithmDefinition] = {
     SVM_DEFINITION.code: SVM_DEFINITION,
     RF_DEFINITION.code: RF_DEFINITION,
+    XGB_DEFINITION.code: XGB_DEFINITION,
     # later: xgboost, regression, mlp...
 }
 

@@ -21,6 +21,12 @@ from ml_core.algorithms.classical_algorithms.xgboost import (
     xgb_regressor_factory,
     xgb_base_specs,
 )
+from ml_core.algorithms.classical_algorithms.regression import (
+    regression_classifier_factory,
+    regression_regressor_factory,
+    regression_classification_specs,
+    regression_regression_specs,
+)
 
 
 SVM_DEFINITION = AlgorithmDefinition(
@@ -80,4 +86,25 @@ XGB_DEFINITION = AlgorithmDefinition(
         ),
     },
 )
+
+
+REGRESSION_DEFINITION = AlgorithmDefinition(
+    code="regression",
+    name="Logistic / Linear Regression",
+    kind="classical",
+    description="LogisticRegression for classification, LinearRegression for regression.",
+    variants={
+        TaskFamily.CLASSIFICATION: AlgorithmVariant(
+            family=TaskFamily.CLASSIFICATION,
+            factory=regression_classifier_factory,
+            hyperparams=regression_classification_specs(),
+        ),
+        TaskFamily.REGRESSION: AlgorithmVariant(
+            family=TaskFamily.REGRESSION,
+            factory=regression_regressor_factory,
+            hyperparams=regression_regression_specs(),
+        ),
+    },
+)
+
 

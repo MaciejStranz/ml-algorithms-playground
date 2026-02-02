@@ -51,6 +51,24 @@ class Algorithm(models.Model):
     def __str__(self) -> str:
         return f"{self.name} ({self.code})"
     
+class AlgorithmVariant(models.Model):
+    algorithm = models.ForeignKey(
+        Algorithm,
+        on_delete=models.CASCADE,
+        related_name="variants",
+    )
+
+    # e.g. "classification", "regression" (future: "vision", "nlp", "timeseries")
+    family = models.CharField(max_length=50)
+
+    hyperparameter_specs = models.JSONField(default=list)
+
+    class Meta:
+        unique_together = ("algorithm", "family")
+
+    def __str__(self) -> str:
+        return f"{self.algorithm.code}:{self.family}"
+    
 
 class Experiment(models.Model):
     """
@@ -72,6 +90,11 @@ class Experiment(models.Model):
 
     dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE)
     algorithm = models.ForeignKey(Algorithm, on_delete=models.CASCADE)
+    algorithm_variant = models.ForeignKey(
+        AlgorithmVariant,
+        on_delete=models.PROTECT,
+        related_name="experiments",
+    )
 
     # Cached task type, copied from Dataset.task for convenience
     task = models.CharField(max_length=20)  # "binary" | "multiclass" | "regression"

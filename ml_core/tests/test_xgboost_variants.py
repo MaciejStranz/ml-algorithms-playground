@@ -3,13 +3,13 @@ import pytest
 from ml_core.runner import RunConfig, run_experiment
 
 from ml_core.algorithms.catalog import get_algorithm
-from ml_core.common.types import TaskFamily
+from ml_core.common.types import TaskType
 from ml_core.common.hyperparameters import validate_params_against_specs
 
 
 def test_xgb_validation_rejects_value_above_max():
     algo = get_algorithm("xgboost")
-    variant = algo.get_variant(TaskFamily.CLASSIFICATION)
+    variant = algo.get_variant(TaskType.BINARY)
     specs_map = {s.name: s for s in variant.hyperparams}
 
     with pytest.raises(ValueError, match="learning_rate"):

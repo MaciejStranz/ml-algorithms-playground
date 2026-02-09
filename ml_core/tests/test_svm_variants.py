@@ -11,11 +11,9 @@ from ml_core.runner import RunConfig, run_experiment
 def _validate_variant_params(algorithm_code: str, task: TaskType, params: dict) -> dict:
     """
     Helper that validates params against the correct algorithm variant
-    (based on task -> task family).
     """
     algo = get_algorithm(algorithm_code)
-    family = task_family_from_task(task)
-    variant = algo.get_variant(family)
+    variant = algo.get_variant(task)
 
     specs_map = {s.name: s for s in variant.hyperparams}
     return validate_params_against_specs(specs_map, params)
@@ -53,7 +51,7 @@ def test_svm_regression_accepts_epsilon_and_model_can_fit():
 
     # Build model via registry and smoke-test fit/predict.
     algo = get_algorithm("svm")
-    variant = algo.get_variant(task_family_from_task(TaskType.REGRESSION))
+    variant = algo.get_variant(TaskType.REGRESSION)
     model = variant.factory(validated)
 
     X, y = make_regression(n_samples=40, n_features=4, noise=0.1, random_state=123)
@@ -75,7 +73,7 @@ def test_svm_classification_model_can_fit_and_predict():
     )
 
     algo = get_algorithm("svm")
-    variant = algo.get_variant(task_family_from_task(TaskType.BINARY))
+    variant = algo.get_variant(TaskType.BINARY)
     model = variant.factory(validated)
 
     X, y = make_classification(
@@ -146,3 +144,16 @@ def test_run_experiment_contract_classification():
     y_proba = preds["y_proba"]
     assert hasattr(y_proba, "__len__")
     assert len(y_proba) == len(y_true)
+
+
+def test_runner_svm_regression_smoke():
+    cfg = RunConfig(
+        dataset_name="diabetes",
+        algorithm_name="svm",
+        hyperparams={"kernel":"rbf"},
+        include_predictions=False,
+    )
+
+    result = run_experiment(cfg)
+    assert "metrics" in result
+    assert "r2" in result["metrics"]

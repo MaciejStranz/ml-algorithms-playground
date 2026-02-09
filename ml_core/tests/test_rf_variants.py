@@ -1,7 +1,7 @@
 import pytest
 
 from ml_core.runner import RunConfig, run_experiment
-from ml_core.common.types import TaskFamily, TaskType
+from ml_core.common.types import TaskType
 from ml_core.common.hyperparameters import validate_params_against_specs
 from ml_core.common.types import task_family_from_task
 from ml_core.algorithms.catalog import get_algorithm
@@ -10,8 +10,7 @@ from ml_core.algorithms.catalog import get_algorithm
 def test_rf_variant_validation_rejects_invalid_choice():
     algo = get_algorithm("random_forest")
 
-    family = TaskFamily.CLASSIFICATION
-    variant = algo.get_variant(family)
+    variant = algo.get_variant(TaskType.BINARY)
 
     specs_map = {s.name: s for s in variant.hyperparams}
 

@@ -3,13 +3,13 @@ import pytest
 from ml_core.runner import RunConfig, run_experiment
 
 from ml_core.algorithms.catalog import get_algorithm
-from ml_core.common.types import TaskFamily
+from ml_core.common.types import TaskType
 from ml_core.common.hyperparameters import validate_params_against_specs
 
 
 def test_regression_variant_rejects_classification_only_param_C():
     algo = get_algorithm("regression")
-    variant = algo.get_variant(TaskFamily.REGRESSION)  # LinearRegression
+    variant = algo.get_variant(TaskType.REGRESSION)  # LinearRegression
     specs_map = {s.name: s for s in variant.hyperparams}
 
     with pytest.raises(ValueError, match="not allowed"):

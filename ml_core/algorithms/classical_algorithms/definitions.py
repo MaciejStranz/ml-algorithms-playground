@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from ml_core.algorithms.algorithm_registry import AlgorithmDefinition, AlgorithmVariant
-from ml_core.common.types import TaskFamily
+from ml_core.common.types import TaskFamily #do usuniecia
+from ml_core.common.types import TaskType
 
 from ml_core.algorithms.classical_algorithms.svm import (
     svm_classifier_factory,
@@ -34,18 +35,20 @@ SVM_DEFINITION = AlgorithmDefinition(
     name="Support Vector Machine",
     kind="classical",
     description="Support Vector Machine classifier/regressor with various kernels.",
-    variants={
-        TaskFamily.CLASSIFICATION: AlgorithmVariant(
-            family=TaskFamily.CLASSIFICATION,
+    variants=[
+        AlgorithmVariant(
+            code="svc",
+            supported_tasks=[TaskType.BINARY, TaskType.MULTICLASS],
             factory=svm_classifier_factory,
-            hyperparams=svm_base_specs(),
+            hyperparams=svm_base_specs()
         ),
-        TaskFamily.REGRESSION: AlgorithmVariant(
-            family=TaskFamily.REGRESSION,
+        AlgorithmVariant(
+            code="svr",
+            supported_tasks=[TaskType.REGRESSION],
             factory=svm_regressor_factory,
-            hyperparams=svm_base_specs() + svm_regression_specs(),
+            hyperparams=svm_base_specs() + svm_regression_specs()
         ),
-    },
+    ]
 )
 
 RF_DEFINITION = AlgorithmDefinition(
@@ -53,18 +56,20 @@ RF_DEFINITION = AlgorithmDefinition(
     name="Random Forest",
     kind="classical",
     description="Ensemble of decision trees for classification and regression.",
-    variants={
-        TaskFamily.CLASSIFICATION: AlgorithmVariant(
-            family=TaskFamily.CLASSIFICATION,
+    variants=[
+        AlgorithmVariant(
+            code="rf_classifier",
+            supported_tasks=[TaskType.BINARY, TaskType.MULTICLASS],
             factory=rf_classifier_factory,
             hyperparams=rf_base_specs() + rf_classification_specs(),
         ),
-        TaskFamily.REGRESSION: AlgorithmVariant(
-            family=TaskFamily.REGRESSION,
+        AlgorithmVariant(
+            code="rf_regressor",
+            supported_tasks=[TaskType.REGRESSION],
             factory=rf_regressor_factory,
             hyperparams=rf_base_specs() + rf_regression_specs(),
         ),
-    },
+    ],
 )
 
 
@@ -73,18 +78,20 @@ XGB_DEFINITION = AlgorithmDefinition(
     name="XGBoost",
     kind="classical",
     description="Gradient boosting trees (XGBoost) for structured data.",
-    variants={
-        TaskFamily.CLASSIFICATION: AlgorithmVariant(
-            family=TaskFamily.CLASSIFICATION,
+    variants=[
+        AlgorithmVariant(
+            code="xgb_classifier",
+            supported_tasks=[TaskType.BINARY, TaskType.MULTICLASS],
             factory=xgb_classifier_factory,
             hyperparams=xgb_base_specs(),
         ),
-        TaskFamily.REGRESSION: AlgorithmVariant(
-            family=TaskFamily.REGRESSION,
+        AlgorithmVariant(
+            code="xgb_regressor",
+            supported_tasks=[TaskType.REGRESSION],
             factory=xgb_regressor_factory,
             hyperparams=xgb_base_specs(),
         ),
-    },
+    ],
 )
 
 
@@ -93,18 +100,20 @@ REGRESSION_DEFINITION = AlgorithmDefinition(
     name="Logistic / Linear Regression",
     kind="classical",
     description="LogisticRegression for classification, LinearRegression for regression.",
-    variants={
-        TaskFamily.CLASSIFICATION: AlgorithmVariant(
-            family=TaskFamily.CLASSIFICATION,
+    variants=[
+        AlgorithmVariant(
+            code="log_reg",
+            supported_tasks=[TaskType.BINARY, TaskType.MULTICLASS],
             factory=regression_classifier_factory,
             hyperparams=regression_classification_specs(),
         ),
-        TaskFamily.REGRESSION: AlgorithmVariant(
-            family=TaskFamily.REGRESSION,
+        AlgorithmVariant(
+            code="lin_reg",
+            supported_tasks=[TaskType.REGRESSION],
             factory=regression_regressor_factory,
             hyperparams=regression_regression_specs(),
         ),
-    },
+    ],
 )
 
 

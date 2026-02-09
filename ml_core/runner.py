@@ -13,7 +13,6 @@ from ml_core.algorithms.hparam_specs import validate_hyperparameters
 
 
 from ml_core.algorithms.catalog import get_algorithm
-from ml_core.common.types import task_family_from_task
 from ml_core.common.hyperparameters import validate_params_against_specs
 
 
@@ -85,9 +84,8 @@ def _build_model(algorithm_name: str, task: TaskType, hyperparams: Dict[str, Any
     """
     hyperparams = hyperparams or {}
 
-    task_family = task_family_from_task(task)
     general_algorithm = get_algorithm(algorithm_name)
-    algorithm_variant = general_algorithm.get_variant(task_family)
+    algorithm_variant = general_algorithm.get_variant(task)
 
     specs_map = {s.name: s for s in algorithm_variant.hyperparams}
     validated = validate_params_against_specs(specs_map, hyperparams)
@@ -167,7 +165,6 @@ def run_experiment(config: RunConfig) -> Dict[str, Any]:
         test_size=config.test_size,
         random_state=config.random_state,
     )
-    task_family = task_family_from_task(dataset.meta.task)
 
     # 2. Build model
     model, model_kind = _build_model(

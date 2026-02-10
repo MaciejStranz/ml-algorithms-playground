@@ -11,7 +11,7 @@ class Dataset(models.Model):
     """
     code = models.CharField(max_length=50, unique=True)  # np. "iris", "wine", "sinx"
     name = models.CharField(max_length=100)
-    task = models.CharField(max_length=20)  # "binary" | "multiclass" | "regression"
+    task = models.CharField(max_length=20) # "binary_classification" | "multiclass_classification" | "regression"
     n_samples = models.IntegerField()
     n_features = models.IntegerField()
     n_classes = models.IntegerField(null=True, blank=True)
@@ -41,10 +41,6 @@ class Algorithm(models.Model):
         ],
     )
 
-    # Full hyperparameter specification as JSON-friendly structures from ml_core
-    # This is expected to be a list of dicts, not a plain dict.
-    hyperparameter_specs = models.JSONField(default=list)
-
     # Optional algorithm description shown in the UI or exposed via API
     description = models.TextField(blank=True)
 
@@ -58,16 +54,14 @@ class AlgorithmVariant(models.Model):
         related_name="variants",
     )
 
-    # e.g. "classification", "regression" (future: "vision", "nlp", "timeseries")
-    family = models.CharField(max_length=50)
-
+    code = models.CharField(max_length=50, unique=True)
+    supported_tasks = models.JSONField(default=list)
+    # Full hyperparameter specification as JSON-friendly structures from ml_core
+    # This is expected to be a list of dicts, not a plain dict.
     hyperparameter_specs = models.JSONField(default=list)
 
-    class Meta:
-        unique_together = ("algorithm", "family")
-
     def __str__(self) -> str:
-        return f"{self.algorithm.code}:{self.family}"
+        return f"{self.algorithm.code}:{self.code}"
     
 
 class Experiment(models.Model):
@@ -89,7 +83,6 @@ class Experiment(models.Model):
     )
 
     dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE)
-    algorithm = models.ForeignKey(Algorithm, on_delete=models.CASCADE)
     algorithm_variant = models.ForeignKey(
         AlgorithmVariant,
         on_delete=models.PROTECT,
@@ -97,7 +90,7 @@ class Experiment(models.Model):
     )
 
     # Cached task type, copied from Dataset.task for convenience
-    task = models.CharField(max_length=20)  # "binary" | "multiclass" | "regression"
+    task = models.CharField(max_length=20)  # "binary_classification" | "multiclass_classification" | "regression"
 
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -130,4 +123,4 @@ class Experiment(models.Model):
     model_path = models.CharField(max_length=512, null=True, blank=True)
 
     def __str__(self) -> str:
-        return f"Experiment #{self.id} by {self.user} on {self.dataset.code} ({self.algorithm.code})"
+        return f"Experiment #{self.id} by {self.user} on {self.dataset.code} ({self.algorithm_variant.code})"

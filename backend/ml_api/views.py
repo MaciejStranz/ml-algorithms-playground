@@ -4,11 +4,13 @@ from rest_framework.exceptions import ValidationError
 from rest_framework import generics
 from django.contrib.auth.models import User
 
-from ml_api.models import Dataset, Algorithm, Experiment
+from ml_api.models import Dataset, Algorithm, Experiment, AlgorithmVariant
 from ml_api.serializers import (
     UserSerializer,
     DatasetSerializer,
     AlgorithmSerializer,
+    AlgorithmVariantSerializer,
+    AlgorithmVariantCompactSerializer,
     ExperimentListSerializer,
     ExperimentDetailSerializer,
     ExperimentCreateSerializer,
@@ -48,7 +50,7 @@ class DatasetViewSet(ReadOnlyModelViewSet):
 
 class AlgorithmViewSet(ReadOnlyModelViewSet):
     """
-    Read-only API for listing algorithms and their hyperparameter specs.
+    Read-only API for listing algorithms.
     """
 
     queryset = Algorithm.objects.all().order_by("name")
@@ -65,6 +67,32 @@ class AlgorithmViewSet(ReadOnlyModelViewSet):
             qs = qs.filter(kind=kind)
         return qs
 
+
+class AlgorithmVariantViewSet(ReadOnlyModelViewSet):
+    """
+    Read-only API for listing algorithm variants.
+
+    Frontend usage:
+      - user selects dataset -> we know dataset.task
+      - frontend calls: GET /api/algorithm-variants/?task=<dataset.task>
+      - backend returns variants that support this task
+    """
+    queryset = AlgorithmVariant.objects.select_related("algorithm").all()
+    serializer_class = AlgorithmVariantSerializer
+    permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+
+        task = self.request.query_params.get("task")
+        if task:
+            # If supported_tasks is JSONField list of strings:
+            qs = qs.filter(supported_tasks__contains=[task])
+
+        algorithm_id = self.request.query_params.get("algorithm")
+        if algorithm_id:
+            qs = qs.filter(algorithm_id=algorithm_id)
+        return qs
 
 class ExperimentViewSet(ModelViewSet):
     """
@@ -83,7 +111,7 @@ class ExperimentViewSet(ModelViewSet):
         """
         return (
             Experiment.objects.filter(user=self.request.user)
-            .select_related("dataset", "algorithm")
+            .select_related("dataset", "algorithm_variant", "algorithm_variant__algorithm")
             .order_by("-created_at")
         )
 
@@ -110,8 +138,8 @@ class ExperimentViewSet(ModelViewSet):
         data = serializer.validated_data
 
         dataset = data["dataset"]          # already a Dataset instance
-        algorithm = data["algorithm"]      # already an Algorithm instance
-        hyperparams = data["hyperparameters"]
+        variant = data["algorithm_variant"]      # already an Algorithm instance
+        hyperparams = data.get("hyperparameters", {})
         test_size = data.get("test_size", 0.3)
         random_state = data.get("random_state", 42)
         include_predictions = data.get("include_predictions", True)
@@ -121,7 +149,8 @@ class ExperimentViewSet(ModelViewSet):
         experiment = Experiment.objects.create(
             user=user,
             dataset=dataset,
-            algorithm=algorithm,
+            algorithm=variant.algorithm,
+            algorithm_variant=variant,
             task=dataset.task,
             hyperparameters=hyperparams,
             test_size=test_size,
@@ -134,7 +163,7 @@ class ExperimentViewSet(ModelViewSet):
         # 2. Build RunConfig from model state
         config = RunConfig(
             dataset_name=dataset.code,
-            algorithm_name=algorithm.code,
+            algorithm_name=variant.algorithm.code,
             hyperparams=hyperparams,
             test_size=test_size,
             random_state=random_state,

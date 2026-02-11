@@ -15,7 +15,6 @@ class UserSerializer(serializers.ModelSerializer):
         extra_kwargs = {"password": {"write_only": True}}
 
     def create(self, validated_data):
-        print(validated_data)
         user = User.objects.create_user(**validated_data)
         return user
 
@@ -55,13 +54,13 @@ class AlgorithmVariantSerializer(serializers.ModelSerializer):
         model = AlgorithmVariant
         fields = ["id", "code", "supported_tasks", "hyperparameter_specs", "algorithm"]
 
-        def get_algorithm(self, obj):
-            return {
-                "id": obj.algorithm.id,
-                "code": obj.algorithm.code,
-                "name": obj.algorithm.name,
-                "kind": obj.algorithm.kind,
-            }
+    def get_algorithm(self, obj):
+        return {
+            "id": obj.algorithm.id,
+            "code": obj.algorithm.code,
+            "name": obj.algorithm.name,
+            "kind": obj.algorithm.kind,
+        }
 
 
 class AlgorithmVariantInlineSerializer(serializers.ModelSerializer):

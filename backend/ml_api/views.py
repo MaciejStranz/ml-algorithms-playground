@@ -79,7 +79,7 @@ class AlgorithmVariantViewSet(ReadOnlyModelViewSet):
     """
     queryset = AlgorithmVariant.objects.select_related("algorithm").all()
     serializer_class = AlgorithmVariantSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         qs = super().get_queryset()

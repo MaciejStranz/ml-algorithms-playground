@@ -1,7 +1,7 @@
 import pytest
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
-from ml_api.models import Dataset, Algorithm, Experiment
+from ml_api.models import Dataset, Algorithm, Experiment, AlgorithmVariant
 
 @pytest.fixture
 def api_client():
@@ -83,17 +83,46 @@ def algo_svm(db):
         code="svm",
         name="Support Vector Machine",
         kind="classical",
-        description="SVM classifier/regressor.",
-        hyperparameter_specs=[],
+        description="SVM classifier/regressor."
+    )
+
+@pytest.fixture
+def variant_svc(db, algo_svm):
+    return AlgorithmVariant.objects.create(
+        algorithm=algo_svm,
+        code="svc",
+        supported_tasks=["binary_classification", "multiclass_classification"],
+        hyperparameter_specs=[{"name": "C", "type": "float", "default": 1.0}],
     )
 
 
 @pytest.fixture
-def make_experiment(db):
+def variant_svr(db, algo_svm):
+    return AlgorithmVariant.objects.create(
+        algorithm=algo_svm,
+        code="svr",
+        supported_tasks=["regression"],
+        hyperparameter_specs=[{"name": "epsilon", "type": "float", "default": 0.1}],
+    )
+
+
+@pytest.fixture
+def make_experiment(db, variant_svc, variant_svr):
     """
     Factory fixture to create experiments with minimal boilerplate.
+    Now supports AlgorithmVariant.
     """
-    def _make(*, user, dataset, algorithm, **kwargs):
+    def _make(*, user, dataset, algorithm=None, algorithm_variant=None, **kwargs):
+        # Backward compat: allow passing algorithm, but variant is the source of truth
+        if algorithm_variant is None:
+            if dataset.task == "regression":
+                algorithm_variant = variant_svr
+            else:
+                algorithm_variant = variant_svc
+
+        if algorithm is None:
+            algorithm = algorithm_variant.algorithm
+
         defaults = dict(
             task=dataset.task,
             status="finished",
@@ -106,10 +135,12 @@ def make_experiment(db):
             include_probabilities=False,
         )
         defaults.update(kwargs)
+
         return Experiment.objects.create(
             user=user,
             dataset=dataset,
             algorithm=algorithm,
+            algorithm_variant=algorithm_variant,
             **defaults,
         )
 

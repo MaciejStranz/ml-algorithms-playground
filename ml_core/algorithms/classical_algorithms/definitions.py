@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from ml_core.algorithms.algorithm_registry import AlgorithmDefinition, AlgorithmVariant
-from ml_core.common.types import TaskFamily #do usuniecia
 from ml_core.common.types import TaskType
 
 from ml_core.algorithms.classical_algorithms.svm import (

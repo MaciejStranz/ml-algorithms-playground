@@ -7,9 +7,7 @@ import numpy as np
 
 from ml_core.data_handlers.load_dataset import load_data, Dataset
 from ml_core.common.types import TaskType
-from ml_core.algorithms.classical import get_classical_model
 from ml_core.evaluation.metrics import EvaluationReport
-from ml_core.algorithms.hparam_specs import validate_hyperparameters
 
 
 from ml_core.algorithms.catalog import get_algorithm
@@ -37,43 +35,6 @@ class RunConfig:
     include_predictions: bool = True
     include_probabilities: bool = False  # only used for classification tasks
 
-#  Internal helpers
-
-# _DEEP_ALGORITHMS = {"mlp"}
-
-
-# def _build_model(
-#     algorithm_name: str,
-#     task: TaskType,
-#     hyperparams: Dict[str, Any] | None,
-# ):
-#     """
-#     Construct a model instance based on algorithm name and task.
-
-#     - All algorithms get their hyperparameters validated based on HyperparameterSpec (validate_hyperparameters)
-#     - Classic models use get_classical_model.
-#     - Deep models use get_deep_model.
-#     """
-#     hyperparams = hyperparams or {}
-
-#     validated_params = validate_hyperparameters(
-#         algorithm_name=algorithm_name,
-#         task=task,
-#         user_params=hyperparams,
-#     )
-
-#     if algorithm_name in _DEEP_ALGORITHMS:
-#         return get_deep_model(
-#             name=algorithm_name,
-#             task=task,
-#             params=validated_params,
-#         )
-
-#     return get_classical_model(
-#         name=algorithm_name,
-#         task=task,
-#         params=validated_params,
-#     )
 
 def _build_model(algorithm_name: str, task: TaskType, hyperparams: Dict[str, Any] | None):
     """

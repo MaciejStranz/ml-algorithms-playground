@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ml_core.algorithms.algorithm_registry import AlgorithmDefinition, AlgorithmVariant
-from ml_core.common.types import TaskFamily, TaskType
+from ml_core.common.types import TaskType
 
 from ml_core.algorithms.deep.mlp_adapter import (
     mlp_classifier_factory,

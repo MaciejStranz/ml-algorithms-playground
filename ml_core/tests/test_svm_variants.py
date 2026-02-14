@@ -3,7 +3,7 @@ import numbers
 from sklearn.datasets import make_classification, make_regression
 
 from ml_core.algorithms.catalog import get_algorithm
-from ml_core.common.types import TaskType, task_family_from_task
+from ml_core.common.types import TaskType
 from ml_core.common.hyperparameters import validate_params_against_specs
 from ml_core.runner import RunConfig, run_experiment
 

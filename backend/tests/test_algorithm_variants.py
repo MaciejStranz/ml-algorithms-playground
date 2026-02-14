@@ -4,7 +4,7 @@ import pytest
 @pytest.mark.django_db
 def test_algorithm_variants_requires_auth(api_client, variant_svc):
     res = api_client.get("/api/algorithm-variants/")
-    assert res.status_code in (401, 403)  # 401 typical for DRF, 403 possible depending on settings
+    assert res.status_code == 401
 
 
 @pytest.mark.django_db

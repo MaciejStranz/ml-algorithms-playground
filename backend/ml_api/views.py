@@ -84,15 +84,15 @@ class AlgorithmVariantViewSet(ReadOnlyModelViewSet):
     def get_queryset(self):
         qs = super().get_queryset()
 
-        task = self.request.query_params.get("task")
-        if task:
-            # If supported_tasks is JSONField list of strings:
-            qs = qs.filter(supported_tasks__contains=[task])
-
         algorithm_id = self.request.query_params.get("algorithm")
         if algorithm_id:
             qs = qs.filter(algorithm_id=algorithm_id)
-        return qs
+
+        task = self.request.query_params.get("task")
+        if not task:
+            return qs
+
+        return [v for v in qs if task in (v.supported_tasks or [])]
 
 class ExperimentViewSet(ModelViewSet):
     """

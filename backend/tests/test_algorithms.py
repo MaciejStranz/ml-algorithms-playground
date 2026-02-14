@@ -2,12 +2,12 @@ import pytest
 
 
 @pytest.mark.django_db
-def test_algorithms_list_shape_ok(algo_svm, auth_client):
+def test_algorithms_list_shape_ok(auth_client, algo_svm, variant_svc):
     """
     Algorithms list returns items matching AlgorithmSerializer fields
+    (after refactor: variants instead of hyperparameter_specs).
     """
     res = auth_client.get("/api/algorithms/")
-
     assert res.status_code == 200
 
     data = res.json()
@@ -16,14 +16,7 @@ def test_algorithms_list_shape_ok(algo_svm, auth_client):
     assert len(items) >= 1
 
     item = items[0]
-    expected_keys = {
-        "id",
-        "code",
-        "name",
-        "kind",
-        "description",
-        "hyperparameter_specs",
-    }
+    expected_keys = {"id", "code", "name", "kind", "description", "variants"}
     assert expected_keys.issubset(item.keys())
 
     assert isinstance(item["id"], int)
@@ -32,16 +25,25 @@ def test_algorithms_list_shape_ok(algo_svm, auth_client):
     assert isinstance(item["kind"], str)
     assert isinstance(item["description"], str)
 
-    specs = item["hyperparameter_specs"]
-    assert isinstance(specs, list)
+    variants = item["variants"]
+    assert isinstance(variants, list)
 
-    # If there are specs, validating the minimal shape of one of them.
-    if specs:
-        spec = specs[0]
-        spec_keys = {"name", "type", "default", "applicable_tasks"}
-        assert spec_keys.issubset(spec.keys())
+    # If there are variants, validate minimal shape of a variant.
+    if variants:
+        v = variants[0]
+        v_keys = {"id", "code", "supported_tasks", "hyperparameter_specs"}
+        assert v_keys.issubset(v.keys())
 
-        assert isinstance(spec["name"], str)
-        assert isinstance(spec["type"], str)
-        # default can be many types (null/number/string/list), so not asserting type
-        assert isinstance(spec["applicable_tasks"], list)
+        assert isinstance(v["id"], int)
+        assert isinstance(v["code"], str)
+        assert isinstance(v["supported_tasks"], list)
+        assert isinstance(v["hyperparameter_specs"], list)
+
+        # If there are specs, validate minimal shape of one spec.
+        if v["hyperparameter_specs"]:
+            spec = v["hyperparameter_specs"][0]
+            spec_keys = {"name", "type", "default"}
+            assert spec_keys.issubset(spec.keys())
+            assert isinstance(spec["name"], str)
+            assert isinstance(spec["type"], str)
+            # default can be many JSON types -> don't assert exact type

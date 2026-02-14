@@ -87,6 +87,8 @@ class Experiment(models.Model):
         AlgorithmVariant,
         on_delete=models.PROTECT,
         related_name="experiments",
+        null=True,
+        blank=True
     )
 
     # Cached task type, copied from Dataset.task for convenience

@@ -1,69 +1,71 @@
-from django.core.management.base import BaseCommand
+from __future__ import annotations
 
-from ml_api.models import Algorithm  # adjust import if your app name is different
-from ml_core.algorithms.registry import get_all_algorithms_meta
+from django.core.management.base import BaseCommand
+from django.db import transaction
+
+from ml_api.models import Algorithm, AlgorithmVariant
 
 
 class Command(BaseCommand):
-    help = "Synchronize Algorithm table with ml_core algorithm registry."
+    help = "Sync algorithms + variants metadata from ml_core into Django DB."
 
     def add_arguments(self, parser):
         parser.add_argument(
-            "--prune",
+            "--no-clean",
             action="store_true",
-            help="Delete Algorithm rows that are no longer present in ml_core.",
+            help="Do not delete DB variants missing in ml_core export.",
         )
 
+    @transaction.atomic
     def handle(self, *args, **options):
-        prune = options["prune"]
+        from ml_core.algorithms.catalog import export_algorithms_for_backend
 
-        meta_list = get_all_algorithms_meta()
-        seen_codes: set[str] = set()
-        created_count = 0
-        updated_count = 0
+        payload = export_algorithms_for_backend()
+        if not isinstance(payload, list):
+            raise RuntimeError("ml_core export must return a list of algorithms.")
 
-        for meta in meta_list:
-            code = meta["code"]
-            seen_codes.add(code)
+        no_clean = bool(options.get("no_clean"))
 
+        seen_algo_codes: set[str] = set()
+        seen_variant_codes: set[str] = set()
+
+        created_algos = updated_algos = 0
+        created_vars = updated_vars = 0
+
+        for algo in payload:
+            code = algo["code"]
             defaults = {
-                "name": meta["name"],
-                "kind": meta["kind"],
-                "description": meta.get("description", ""),
-                "hyperparameter_specs": meta["hyperparameter_specs"],
+                "name": algo.get("name", code),
+                "kind": algo.get("kind", "classical"),
+                "description": algo.get("description", ""),
             }
 
-            obj, created = Algorithm.objects.update_or_create(
-                code=code,
-                defaults=defaults,
-            )
+            algo_obj, created = Algorithm.objects.update_or_create(code=code, defaults=defaults)
+            seen_algo_codes.add(code)
+            created_algos += int(created)
+            updated_algos += int(not created)
 
-            if created:
-                created_count += 1
-                self.stdout.write(
-                    self.style.SUCCESS(f"Created algorithm {code!r} ({obj.name})")
-                )
-            else:
-                updated_count += 1
-                self.stdout.write(
-                    self.style.WARNING(f"Updated algorithm {code!r} ({obj.name})")
-                )
+            for v in algo.get("variants", []):
+                v_code = v["code"]
+                v_defaults = {
+                    "algorithm": algo_obj,
+                    "supported_tasks": v.get("supported_tasks", []),
+                    "hyperparameter_specs": v.get("hyperparameter_specs", []),
+                }
 
-        deleted_count = 0
-        if prune:
-            qs_to_delete = Algorithm.objects.exclude(code__in=seen_codes)
-            deleted_count = qs_to_delete.count()
-            if deleted_count:
-                qs_to_delete.delete()
-                self.stdout.write(
-                    self.style.ERROR(
-                        f"Pruned {deleted_count} algorithms not present in ml_core."
-                    )
-                )
+                v_obj, v_created = AlgorithmVariant.objects.update_or_create(code=v_code, defaults=v_defaults)
+                seen_variant_codes.add(v_code)
+                created_vars += int(v_created)
+                updated_vars += int(not v_created)
+
+        deleted_vars = 0
+        if not no_clean:
+            deleted_vars, _ = AlgorithmVariant.objects.exclude(code__in=seen_variant_codes).delete()
 
         self.stdout.write(
             self.style.SUCCESS(
-                f"Algorithm sync finished. Created: {created_count}, "
-                f"updated: {updated_count}, pruned: {deleted_count}."
+                "Sync complete.\n"
+                f"- Algorithms: created={created_algos}, updated={updated_algos}\n"
+                f"- Variants:   created={created_vars}, updated={updated_vars}, deleted={deleted_vars}"
             )
         )

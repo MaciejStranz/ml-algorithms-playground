@@ -112,16 +112,13 @@ def make_experiment(db, variant_svc, variant_svr):
     Factory fixture to create experiments with minimal boilerplate.
     Now supports AlgorithmVariant.
     """
-    def _make(*, user, dataset, algorithm=None, algorithm_variant=None, **kwargs):
+    def _make(*, user, dataset, algorithm_variant=None, **kwargs):
         # Backward compat: allow passing algorithm, but variant is the source of truth
         if algorithm_variant is None:
             if dataset.task == "regression":
                 algorithm_variant = variant_svr
             else:
                 algorithm_variant = variant_svc
-
-        if algorithm is None:
-            algorithm = algorithm_variant.algorithm
 
         defaults = dict(
             task=dataset.task,
@@ -139,7 +136,6 @@ def make_experiment(db, variant_svc, variant_svr):
         return Experiment.objects.create(
             user=user,
             dataset=dataset,
-            algorithm=algorithm,
             algorithm_variant=algorithm_variant,
             **defaults,
         )

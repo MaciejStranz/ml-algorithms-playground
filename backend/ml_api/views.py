@@ -149,7 +149,6 @@ class ExperimentViewSet(ModelViewSet):
         experiment = Experiment.objects.create(
             user=user,
             dataset=dataset,
-            algorithm=variant.algorithm,
             algorithm_variant=variant,
             task=dataset.task,
             hyperparameters=hyperparams,

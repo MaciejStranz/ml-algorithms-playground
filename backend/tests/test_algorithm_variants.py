@@ -45,3 +45,12 @@ def test_algorithm_variants_filter_by_task(auth_client, variant_svc, variant_svr
 
     assert "svc" in codes2
     assert "svr" not in codes2
+
+
+@pytest.mark.django_db
+def test_algorithm_variants_when_invalid_task_given(auth_client, variant_svc):
+    res = auth_client.get("/api/algorithm-variants/?task=invalid")
+    assert res.status_code == 200
+
+    data = res.json()
+    assert len(data) == 0

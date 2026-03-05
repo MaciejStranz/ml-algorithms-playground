@@ -7,7 +7,7 @@ export default function Algorithms() {
         <div>
           <h1 className="text-4xl font-extrabold text-white">Algorithms</h1>
           <p className="mt-2 text-slate-300">
-            Available algorithms and their hyperparameter configuration options.
+            Available algorithms, their variants and supported tasks.
           </p>
         </div>
 

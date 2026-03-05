@@ -13,7 +13,9 @@ function KindBadge({ kind }) {
     <span
       className={[
         "rounded-md px-2 py-1 text-xs font-semibold",
-        isDeep ? "bg-indigo-900/40 text-indigo-200" : "bg-slate-800 text-slate-200",
+        isDeep
+          ? "bg-indigo-900/40 text-indigo-200"
+          : "bg-slate-800 text-slate-200",
       ].join(" ")}
     >
       {kind ?? "—"}
@@ -23,19 +25,28 @@ function KindBadge({ kind }) {
 
 function TaskBadge({ task }) {
   return (
-    <span className="rounded-md bg-slate-800 px-2 py-1 text-xs font-semibold text-slate-200">
+    <span className="rounded-md bg-indigo-900/30 px-2 py-1 text-xs font-semibold text-indigo-100">
       {formatTask(task)}
     </span>
   );
 }
 
+function VariantBadge({ code }) {
+  return (
+    <span className="rounded-md bg-emerald-900/30 px-2 py-1 text-xs font-semibold text-emerald-100">
+      {code}
+    </span>
+  );
+}
+
+
 export default function AlgorithmCard({ algorithm }) {
-  const specs = Array.isArray(algorithm.hyperparameter_specs)
-    ? algorithm.hyperparameter_specs
-    : [];
+  const variants = Array.isArray(algorithm?.variants) ? algorithm.variants : [];
 
   const supportedTasks = uniq(
-    specs.flatMap((s) => (Array.isArray(s.applicable_tasks) ? s.applicable_tasks : []))
+    variants.flatMap((v) =>
+      Array.isArray(v.supported_tasks) ? v.supported_tasks : [],
+    ),
   );
 
   return (
@@ -53,17 +64,28 @@ export default function AlgorithmCard({ algorithm }) {
         <KindBadge kind={algorithm.kind} />
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-2">
-        {supportedTasks.length > 0 ? (
-          supportedTasks.map((t) => <TaskBadge key={t} task={t} />)
-        ) : (
-          <span className="text-sm text-slate-300">Tasks: —</span>
-        )}
-      </div>
+      <div className="mt-4 space-y-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-sm font-semibold text-slate-300">
+            Supported tasks:
+          </span>
+          {supportedTasks.length > 0 ? (
+            supportedTasks.map((t) => <TaskBadge key={t} task={t} />)
+          ) : (
+            <span className="text-sm text-slate-400">-</span>
+          )}
+        </div>
 
-      <div className="mt-4 text-sm text-slate-300">
-        Hyperparameters:{" "}
-        <span className="font-semibold text-slate-200">{specs.length}</span>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-sm font-semibold text-slate-300">
+            Available variants:
+          </span>
+          {variants.length > 0 ? (
+            variants.map((v) => <VariantBadge key={v.code} code={v.code} />)
+          ) : (
+            <span className="text-sm text-slate-400">-</span>
+          )}
+        </div>
       </div>
     </div>
   );

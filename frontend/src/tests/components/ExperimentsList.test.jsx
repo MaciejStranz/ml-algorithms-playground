@@ -5,7 +5,7 @@ import { http, HttpResponse } from "msw";
 import { server } from "../testServer";
 
 // Adjust this path if needed:
-import ExperimentsList from "../../components/experiments/ExperimentsList";
+import ExperimentsList from "../../components/Experiments/ExperimentsList";
 
 /**
  * Match both:

@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { fetchDatasets } from "../../services/datasetService";
-import { fetchAlgorithms } from "../../services/algorithmService";
 import { createExperiment } from "../../services/experimentService";
-import { useResourceList } from "../../hooks/useResourceList";
+
+import { useDatasetsQuery } from "../../queries/datasets/useDatasetsQuery";
+import { useAlgorithmVariantsQuery } from "../../queries/algorithms/useAlgorithmVariantsQuery";
 
 import DatasetPicker from "./DatasetPicker";
 import AlgorithmPicker from "./AlgorithmPicker";
@@ -15,7 +15,7 @@ export default function ExperimentCreatorWizard() {
   const navigate = useNavigate();
 
   const [datasetId, setDatasetId] = useState("");
-  const [algorithmId, setAlgorithmId] = useState("");
+  const [algorithmVariantId, setAlgorithmVariantId] = useState("");
   const [hyperparameters, setHyperparameters] = useState({});
 
   // config
@@ -29,40 +29,35 @@ export default function ExperimentCreatorWizard() {
   const [submitError, setSubmitError] = useState("");
 
   const {
-    items: datasets,
-    loading: datasetsLoading,
-    errorMsg: datasetsError,
-  } = useResourceList(({ signal }) => fetchDatasets({ signal }), []);
-
-  const {
-    items: algorithms,
-    loading: algorithmsLoading,
-    errorMsg: algorithmsError,
-  } = useResourceList(({ signal }) => fetchAlgorithms({ signal }), []);
+    data: datasets = [],
+    isPending: datasetsLoading,
+    error: datasetsErrorObj,
+  } = useDatasetsQuery();
 
   const selectedDataset = useMemo(
     () => datasets.find((d) => String(d.id) === String(datasetId)),
-    [datasets, datasetId]
+    [datasets, datasetId],
   );
 
   const task = selectedDataset?.task;
 
-  const filteredAlgorithms = useMemo(() => {
-    if (!task) return [];
-    return algorithms.filter((algo) => {
-      const specs = Array.isArray(algo.hyperparameter_specs) ? algo.hyperparameter_specs : [];
-      return specs.some((s) => Array.isArray(s.applicable_tasks) && s.applicable_tasks.includes(task));
-    });
-  }, [algorithms, task]);
+  const {
+    data: algorithmVariants = [], 
+    isPending: algorithmsLoading, 
+    error: algorithmsErrorObj
+  } = useAlgorithmVariantsQuery(task);
 
-  const selectedAlgorithm = useMemo(
-    () => algorithms.find((a) => String(a.id) === String(algorithmId)),
-    [algorithms, algorithmId]
+  const selectedVariant = useMemo(
+    () => algorithmVariants.find((v) => String(v.id) === String(algorithmVariantId)), 
+    [algorithmVariants, algorithmVariantId]
   );
+
+  const datasetsError = datasetsErrorObj?.response?.data?.detail || "";
+  const algorithmsError = algorithmsErrorObj?.response?.data?.detail || "";
 
   // reset downstream selection when dataset changes
   useEffect(() => {
-    setAlgorithmId("");
+    setAlgorithmVariantId("");
     setHyperparameters({});
     setSubmitError("");
 
@@ -72,10 +67,10 @@ export default function ExperimentCreatorWizard() {
 
   // init hyperparameters defaults when algorithm changes
   useEffect(() => {
-    if (!selectedAlgorithm || !task) return;
+    if (!selectedVariant || !task) return;
 
-    const specs = Array.isArray(selectedAlgorithm.hyperparameter_specs)
-      ? selectedAlgorithm.hyperparameter_specs
+    const specs = Array.isArray(selectedVariant.hyperparameter_specs)
+      ? selectedVariant.hyperparameter_specs
       : [];
 
     const applicable = specs.filter((s) => {
@@ -91,14 +86,14 @@ export default function ExperimentCreatorWizard() {
 
     setHyperparameters(defaults);
     setSubmitError("");
-  }, [selectedAlgorithm, task]);
+  }, [selectedVariant, task]);
 
   const errorMsg = datasetsError || algorithmsError;
 
   const isClassification = task?.endsWith("_classification");
   const canSubmit =
     Boolean(datasetId) &&
-    Boolean(algorithmId) &&
+    Boolean(algorithmVariantId) &&
     !datasetsLoading &&
     !algorithmsLoading &&
     !submitting;
@@ -106,7 +101,7 @@ export default function ExperimentCreatorWizard() {
   async function handleRunExperiment() {
     setSubmitError("");
 
-    if (!datasetId || !algorithmId) {
+    if (!datasetId || !algorithmVariantId) {
       setSubmitError("Please select dataset and algorithm first.");
       return;
     }
@@ -120,14 +115,14 @@ export default function ExperimentCreatorWizard() {
     setSubmitting(true);
     try {
       const hp = buildHyperparametersPayload({
-        specs: selectedAlgorithm?.hyperparameter_specs,
+        specs: selectedVariant?.hyperparameter_specs,
         task,
         values: hyperparameters,
       });
 
       const payload = {
         dataset: Number(datasetId),
-        algorithm: Number(algorithmId),
+        algorithm_variant: Number(algorithmVariantId),
         hyperparameters: hp,
         test_size: testSize,
         random_state: randomState,
@@ -135,7 +130,7 @@ export default function ExperimentCreatorWizard() {
         include_probabilities: isClassification ? includeProbabilities : false,
       };
 
-      console.log(payload) //debuging
+      console.log(payload); //debuging
       const created = await createExperiment(payload);
 
       // MVP: go back to Home (experiments list)
@@ -173,24 +168,23 @@ export default function ExperimentCreatorWizard() {
         />
       )}
 
-      {datasetId && (
-        algorithmsLoading ? (
+      {datasetId &&
+        (algorithmsLoading ? (
           <div className="rounded-2xl border border-slate-700 bg-slate-900/60 p-6 text-slate-200">
             Loading algorithms...
           </div>
         ) : (
           <AlgorithmPicker
-            algorithms={filteredAlgorithms}
-            selectedId={algorithmId}
-            onSelect={setAlgorithmId}
+            algorithmVariants={algorithmVariants}
+            selectedId={algorithmVariantId}
+            onSelect={setAlgorithmVariantId}
           />
-        )
-      )}
+        ))}
 
-      {datasetId && algorithmId && selectedAlgorithm && (
+      {datasetId && algorithmVariantId && selectedVariant && (
         <>
           <HyperparametersForm
-            specs={selectedAlgorithm.hyperparameter_specs}
+            specs={selectedVariant.hyperparameter_specs}
             task={task}
             values={hyperparameters}
             onChange={setHyperparameters}

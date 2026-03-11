@@ -1,8 +1,9 @@
-export default function AlgorithmSelectCard({ algorithm, selected, onSelect }) {
+export default function AlgorithmSelectCard({ algorithmVariant, selected, onSelect }) {
+  const algorithm = algorithmVariant?.algorithm ?? {};
   return (
     <button
       type="button"
-      onClick={() => onSelect(algorithm.id)}
+      onClick={() => onSelect(algorithmVariant.id)}
       className={[
         "w-full text-left rounded-2xl border p-5 shadow-sm transition cursor-pointer",
         "bg-slate-900/60 hover:bg-slate-900/80",
@@ -13,7 +14,7 @@ export default function AlgorithmSelectCard({ algorithm, selected, onSelect }) {
     >
       <div className="flex items-start justify-between gap-4">
         <div>
-          <div className="text-sm text-slate-400">{algorithm.code}</div>
+          <div className="text-sm font-semibold text-cyan-300">{algorithmVariant.code}</div>
           <h3 className="mt-1 text-lg font-semibold text-white">
             {algorithm.name}
           </h3>

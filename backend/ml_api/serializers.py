@@ -60,6 +60,7 @@ class AlgorithmVariantSerializer(serializers.ModelSerializer):
             "code": obj.algorithm.code,
             "name": obj.algorithm.name,
             "kind": obj.algorithm.kind,
+            "description": obj.algorithm.description,
         }
 
 

@@ -47,10 +47,6 @@ describe("ExperimentCreatorWizard", () => {
     let requestedTask = null;
 
     server.use(
-      http.options(DATASETS_URL, () => new HttpResponse(null, { status: 204 })),
-      http.options(ALGORITHM_VARIANTS_URL, () => new HttpResponse(null, { status: 204 })),
-      http.options(EXPERIMENTS_CREATE_URL, () => new HttpResponse(null, { status: 204 })),
-
       http.get(DATASETS_URL, () =>
         HttpResponse.json(
           [

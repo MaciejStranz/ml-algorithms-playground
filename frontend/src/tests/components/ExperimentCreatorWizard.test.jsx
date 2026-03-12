@@ -1,33 +1,56 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { describe, expect, test, vi, beforeEach } from "vitest";
 import { http, HttpResponse } from "msw";
 import { server } from "../testServer";
 
-// Adjust path:
 import ExperimentCreatorWizard from "../../components/ExperimentCreator/ExperimentCreatorWizard";
 
 const DATASETS_URL = /\/api\/datasets\/$/;
-const ALGORITHMS_URL = /\/api\/algorithms\/$/;
+const ALGORITHM_VARIANTS_URL = /\/api\/algorithm-variants\/(\?.*)?$/;
 const EXPERIMENTS_CREATE_URL = /\/api\/experiments\/$/;
 
+function createTestQueryClient() {
+  return new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
+}
+
 function renderApp() {
+  const queryClient = createTestQueryClient();
+
   render(
-    <MemoryRouter initialEntries={["/run"]}>
-      <Routes>
-        <Route path="/" element={<div>HOME</div>} />
-        <Route path="/run" element={<ExperimentCreatorWizard />} />
-      </Routes>
-    </MemoryRouter>
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter initialEntries={["/run"]}>
+        <Routes>
+          <Route path="/" element={<div>HOME</div>} />
+          <Route path="/run" element={<ExperimentCreatorWizard />} />
+        </Routes>
+      </MemoryRouter>
+    </QueryClientProvider>
   );
 }
 
+beforeEach(() => {
+  localStorage.clear();
+});
+
 describe("ExperimentCreatorWizard", () => {
-  test("happy path: select dataset + algorithm and run experiment -> POST + redirect to home", async () => {
+  test("happy path: select dataset + algorithm variant and run experiment -> POST + redirect to home", async () => {
     const user = userEvent.setup();
 
-    // --- Arrange: mock datasets + algorithms ---
+    let requestedTask = null;
+
     server.use(
+      http.options(DATASETS_URL, () => new HttpResponse(null, { status: 204 })),
+      http.options(ALGORITHM_VARIANTS_URL, () => new HttpResponse(null, { status: 204 })),
+      http.options(EXPERIMENTS_CREATE_URL, () => new HttpResponse(null, { status: 204 })),
+
       http.get(DATASETS_URL, () =>
         HttpResponse.json(
           [
@@ -47,15 +70,17 @@ describe("ExperimentCreatorWizard", () => {
           { status: 200 }
         )
       ),
-      http.get(ALGORITHMS_URL, () =>
-        HttpResponse.json(
+
+      http.get(ALGORITHM_VARIANTS_URL, ({ request }) => {
+        const url = new URL(request.url);
+        requestedTask = url.searchParams.get("task");
+
+        return HttpResponse.json(
           [
             {
-              id: 1,
-              code: "svm",
-              name: "Support Vector Machine",
-              kind: "classical",
-              description: "SVM classifier/regressor.",
+              id: 101,
+              code: "svc",
+              supported_tasks: ["binary_classification", "multiclass_classification"],
               hyperparameter_specs: [
                 {
                   name: "C",
@@ -66,7 +91,6 @@ describe("ExperimentCreatorWizard", () => {
                   min: 0.0001,
                   max: 10000,
                   choices: null,
-                  applicable_tasks: ["binary_classification", "multiclass_classification", "regression"],
                   advanced: false,
                 },
                 {
@@ -78,18 +102,22 @@ describe("ExperimentCreatorWizard", () => {
                   min: null,
                   max: null,
                   choices: ["linear", "rbf"],
-                  applicable_tasks: ["binary_classification", "multiclass_classification", "regression"],
                   advanced: false,
                 },
               ],
+              algorithm: {
+                id: 1,
+                code: "svm",
+                name: "Support Vector Machine",
+                kind: "classical",
+              },
             },
           ],
           { status: 200 }
-        )
-      )
+        );
+      })
     );
 
-    // Capture payload to assert correctness
     let receivedPayload = null;
 
     server.use(
@@ -99,57 +127,44 @@ describe("ExperimentCreatorWizard", () => {
       })
     );
 
-    // Avoid jsdom error for window.scrollTo
     const scrollSpy = vi.spyOn(window, "scrollTo").mockImplementation(() => {});
 
     renderApp();
 
-    // --- Wait for datasets to load ---
     const irisHeading = await screen.findByRole("heading", { name: "Iris" });
     expect(irisHeading).toBeInTheDocument();
-    
-    // --- Act: pick dataset ---
-    // This assumes DatasetPicker renders something clickable with text "Iris".
-    // If it doesn't, see note below about aria-labels.
+
     await user.click(irisHeading);
 
-    // --- Algorithms section should appear (filtered by task) ---
     expect(await screen.findByText(/support vector machine/i)).toBeInTheDocument();
 
-    // --- Act: pick algorithm ---
     await user.click(screen.getByText(/support vector machine/i));
 
-    // Run button should appear now (hyperparams + config section are rendered)
     const runBtn = await screen.findByRole("button", { name: /run experiment/i });
     expect(runBtn).toBeEnabled();
 
-    // --- Act: run ---
     await user.click(runBtn);
 
-    // --- Assert: POST payload is correct ---
     await waitFor(() => {
       expect(receivedPayload).not.toBeNull();
     });
 
-    expect(receivedPayload.dataset).toBe(1);
-    expect(receivedPayload.algorithm).toBe(1);
+    expect(requestedTask).toBe("multiclass_classification");
 
-    // Defaults from wizard state
+    expect(receivedPayload.dataset).toBe(1);
+    expect(receivedPayload.algorithm_variant).toBe(101);
+    expect(receivedPayload.algorithm).toBeUndefined();
+
     expect(receivedPayload.test_size).toBe(0.3);
     expect(receivedPayload.random_state).toBe(42);
     expect(receivedPayload.include_predictions).toBe(true);
-
-    // Classification -> include_probabilities is false by default (and you reset it)
     expect(receivedPayload.include_probabilities).toBe(false);
 
-    // Hyperparameters: should contain defaults (C=1, kernel="rbf") after buildHyperparametersPayload
-    // We don't overfit to exact shape beyond key values.
     expect(receivedPayload.hyperparameters).toMatchObject({
       C: 1,
       kernel: "rbf",
     });
 
-    // --- Assert: redirected to home ---
     expect(await screen.findByText("HOME")).toBeInTheDocument();
 
     scrollSpy.mockRestore();

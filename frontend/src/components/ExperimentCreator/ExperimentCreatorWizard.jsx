@@ -43,8 +43,8 @@ export default function ExperimentCreatorWizard() {
 
   const {
     data: algorithmVariants = [], 
-    isPending: algorithmsLoading, 
-    error: algorithmsErrorObj
+    isPending: algorithmVariantsLoading, 
+    error: algorithmVariantsErrorObj
   } = useAlgorithmVariantsQuery(task);
 
   const selectedVariant = useMemo(
@@ -53,7 +53,7 @@ export default function ExperimentCreatorWizard() {
   );
 
   const datasetsError = datasetsErrorObj?.response?.data?.detail || "";
-  const algorithmsError = algorithmsErrorObj?.response?.data?.detail || "";
+  const algorithmsError = algorithmVariantsErrorObj?.response?.data?.detail || "";
 
   // reset downstream selection when dataset changes
   useEffect(() => {
@@ -67,26 +67,21 @@ export default function ExperimentCreatorWizard() {
 
   // init hyperparameters defaults when algorithm changes
   useEffect(() => {
-    if (!selectedVariant || !task) return;
+    if (!selectedVariant) return;
 
     const specs = Array.isArray(selectedVariant.hyperparameter_specs)
       ? selectedVariant.hyperparameter_specs
       : [];
 
-    const applicable = specs.filter((s) => {
-      const tasks = Array.isArray(s.applicable_tasks) ? s.applicable_tasks : [];
-      return tasks.length === 0 || tasks.includes(task);
-    });
-
     const defaults = {};
-    for (const s of applicable) {
+    for (const s of specs) {
       if (!s?.name) continue;
       defaults[s.name] = s.default ?? null;
     }
 
     setHyperparameters(defaults);
     setSubmitError("");
-  }, [selectedVariant, task]);
+  }, [selectedVariant]);
 
   const errorMsg = datasetsError || algorithmsError;
 
@@ -95,7 +90,7 @@ export default function ExperimentCreatorWizard() {
     Boolean(datasetId) &&
     Boolean(algorithmVariantId) &&
     !datasetsLoading &&
-    !algorithmsLoading &&
+    !algorithmVariantsLoading &&
     !submitting;
 
   async function handleRunExperiment() {
@@ -116,7 +111,6 @@ export default function ExperimentCreatorWizard() {
     try {
       const hp = buildHyperparametersPayload({
         specs: selectedVariant?.hyperparameter_specs,
-        task,
         values: hyperparameters,
       });
 
@@ -130,8 +124,7 @@ export default function ExperimentCreatorWizard() {
         include_probabilities: isClassification ? includeProbabilities : false,
       };
 
-      console.log(payload); //debuging
-      const created = await createExperiment(payload);
+      await createExperiment(payload);
 
       // MVP: go back to Home (experiments list)
       // Later: navigate(`/experiments/${created.id}`)
@@ -169,7 +162,7 @@ export default function ExperimentCreatorWizard() {
       )}
 
       {datasetId &&
-        (algorithmsLoading ? (
+        (algorithmVariantsLoading ? (
           <div className="rounded-2xl border border-slate-700 bg-slate-900/60 p-6 text-slate-200">
             Loading algorithms...
           </div>
@@ -185,7 +178,6 @@ export default function ExperimentCreatorWizard() {
         <>
           <HyperparametersForm
             specs={selectedVariant.hyperparameter_specs}
-            task={task}
             values={hyperparameters}
             onChange={setHyperparameters}
           />

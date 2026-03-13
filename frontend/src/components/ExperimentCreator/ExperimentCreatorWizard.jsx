@@ -1,10 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { createExperiment } from "../../services/experimentService";
-
 import { useDatasetsQuery } from "../../queries/datasets/useDatasetsQuery";
 import { useAlgorithmVariantsQuery } from "../../queries/algorithms/useAlgorithmVariantsQuery";
+import { useCreateExperimentMutation } from "../../queries/experiments/useCreateExperimentMutation";
 
 import DatasetPicker from "./DatasetPicker";
 import AlgorithmPicker from "./AlgorithmPicker";
@@ -13,7 +12,7 @@ import { buildHyperparametersPayload } from "../../utils/hyperparameters";
 
 export default function ExperimentCreatorWizard() {
   const navigate = useNavigate();
-
+  // user input
   const [datasetId, setDatasetId] = useState("");
   const [algorithmVariantId, setAlgorithmVariantId] = useState("");
   const [hyperparameters, setHyperparameters] = useState({});
@@ -25,8 +24,9 @@ export default function ExperimentCreatorWizard() {
   const [includeProbabilities, setIncludeProbabilities] = useState(false);
 
   // submit state
-  const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+
+  const createExperimentMutation = useCreateExperimentMutation();
 
   const {
     data: datasets = [],
@@ -91,7 +91,7 @@ export default function ExperimentCreatorWizard() {
     Boolean(algorithmVariantId) &&
     !datasetsLoading &&
     !algorithmVariantsLoading &&
-    !submitting;
+    !createExperimentMutation.isPending;
 
   async function handleRunExperiment() {
     setSubmitError("");
@@ -107,7 +107,6 @@ export default function ExperimentCreatorWizard() {
       return;
     }
 
-    setSubmitting(true);
     try {
       const hp = buildHyperparametersPayload({
         specs: selectedVariant?.hyperparameter_specs,
@@ -124,7 +123,8 @@ export default function ExperimentCreatorWizard() {
         include_probabilities: isClassification ? includeProbabilities : false,
       };
 
-      await createExperiment(payload);
+      // await createExperiment(payload); 
+      await createExperimentMutation.mutateAsync(payload)
 
       // MVP: go back to Home (experiments list)
       // Later: navigate(`/experiments/${created.id}`)
@@ -136,8 +136,6 @@ export default function ExperimentCreatorWizard() {
         (typeof err?.response?.data === "string" ? err.response.data : null) ||
         "Failed to run experiment. Please check input and try again.";
       setSubmitError(msg);
-    } finally {
-      setSubmitting(false);
     }
   }
 
@@ -253,7 +251,7 @@ export default function ExperimentCreatorWizard() {
                   : "bg-slate-700 text-slate-300 cursor-not-allowed",
               ].join(" ")}
             >
-              {submitting ? "Running..." : "Run experiment"}
+              {createExperimentMutation.isPending ? "Running..." : "Run experiment"}
             </button>
           </div>
         </>

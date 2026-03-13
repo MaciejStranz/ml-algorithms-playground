@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import AlgorithmVariantBadge from "../UI/AlgorithmVariantBadge"
 
 function getPrimaryMetric(experiment) {
   const task = (experiment.task || "").toLowerCase();
@@ -36,6 +37,7 @@ export default function ExperimentCard({ experiment, onDelete, deleting }) {
           <h3 className="mt-1 text-lg font-semibold text-white">
             {experiment.algorithm_variant?.algorithm?.name ?? "Unknown algorithm"}
           </h3>
+          <AlgorithmVariantBadge code={experiment.algorithm_variant?.code} />
 
           <p className="mt-1 text-slate-300">
             Dataset:{" "}

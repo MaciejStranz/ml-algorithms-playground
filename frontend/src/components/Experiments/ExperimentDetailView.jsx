@@ -6,6 +6,7 @@ import { useDeleteExperimentMutation } from "../../queries/experiments/useDelete
 
 import LoadingCard from "../UI/LoadingCard";
 import ErrorBanner from "../UI/ErrorBanner";
+import AlgorithmVariantBadge from "../UI/AlgorithmVariantBadge";
 
 function Badge({ children, variant = "neutral" }) {
   const cls =
@@ -132,6 +133,7 @@ export default function ExperimentDetailView({ experimentId }) {
               <Badge>{experiment.task ?? "—"}</Badge>
               <Badge>{experiment.dataset?.name ?? "—"}</Badge>
               <Badge>{experiment.algorithm_variant?.algorithm?.name ?? "—"}</Badge>
+              <AlgorithmVariantBadge code={experiment.algorithm_variant?.code} />
             </div>
 
             <p className="mt-2 text-sm text-slate-300">

@@ -35,7 +35,7 @@ export default function ExperimentCard({ experiment, onDelete, deleting }) {
           </Link>
 
           <h3 className="mt-1 text-lg font-semibold text-white">
-            {experiment.algorithm?.name ?? "Unknown algorithm"}
+            {experiment.algorithm_variant?.algorithm?.name ?? "Unknown algorithm"}
           </h3>
 
           <p className="mt-1 text-slate-300">

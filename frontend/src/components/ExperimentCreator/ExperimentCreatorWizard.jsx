@@ -123,7 +123,6 @@ export default function ExperimentCreatorWizard() {
         include_probabilities: isClassification ? includeProbabilities : false,
       };
 
-      // await createExperiment(payload); 
       await createExperimentMutation.mutateAsync(payload)
 
       // MVP: go back to Home (experiments list)

@@ -1,4 +1,3 @@
-import { fetchExperiments } from "../../services/experimentService";
 import { Link } from "react-router-dom";
 
 function getPrimaryMetric(experiment) {

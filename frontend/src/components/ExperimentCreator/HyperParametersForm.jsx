@@ -110,7 +110,7 @@ export default function HyperparametersForm({ specs, values, onChange }) {
                         if (Array.isArray(parsed) && parsed.every((x) => Number.isInteger(x))) {
                           setValue(name, parsed);
                         } else {
-                          // jeżeli niepoprawne, zostaw jako string (nie psuj stanu)
+                          // if invalid string remains
                           setValue(name, raw);
                         }
                       } catch {

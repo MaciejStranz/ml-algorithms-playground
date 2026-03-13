@@ -1,7 +1,11 @@
-import { useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { fetchExperimentById, deleteExperiment } from "../../services/experimentService";
-import { useResource } from "../../hooks/useResource";
+
+import { useExperimentByIdQuery } from "../../queries/experiments/useExperimentByIdQuery";
+import { useDeleteExperimentMutation } from "../../queries/experiments/useDeleteExperimentMutation";
+
+import LoadingCard from "../UI/LoadingCard";
+import ErrorBanner from "../UI/ErrorBanner";
 
 function Badge({ children, variant = "neutral" }) {
   const cls =
@@ -67,23 +71,15 @@ export default function ExperimentDetailView({ experimentId }) {
   const navigate = useNavigate();
   const [actionError, setActionError] = useState("");
 
-  const loader = useCallback(
-    ({ signal }) => fetchExperimentById(experimentId, { signal }),
-    [experimentId]
-  );
-
-  const { data: experiment, loading, errorMsg } = useResource(
-    loader,
-    [loader],
-    { fallbackErrorMessage: "Failed to load experiment details." }
-  );
+  const {data: experiment, isPending, error} = useExperimentByIdQuery(experimentId);
+  const deleteExperimentMutation = useDeleteExperimentMutation();
 
   const primaryMetric = useMemo(
     () => (experiment ? getPrimaryMetric(experiment) : null),
     [experiment]
   );
 
-  const combinedError = errorMsg || actionError;
+  const combinedError = error?.response?.data?.detail || actionError;
 
   async function handleDelete() {
     if (!experiment?.id) return;
@@ -93,7 +89,7 @@ export default function ExperimentDetailView({ experimentId }) {
 
     setActionError("");
     try {
-      await deleteExperiment(experiment.id);
+      await deleteExperimentMutation.mutateAsync(experiment.id);
       navigate("/", { replace: true });
     } catch (err) {
       const msg = err?.response?.data?.detail || "Failed to delete experiment.";
@@ -101,32 +97,18 @@ export default function ExperimentDetailView({ experimentId }) {
     }
   }
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 px-4 py-10">
-        <div className="mx-auto w-full max-w-5xl">
-          <div className="rounded-2xl border border-slate-700 bg-slate-900/60 p-6 text-slate-200">
-            Loading experiment...
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (combinedError) {
+  if (isPending) return <LoadingCard text="Loading experiment..." />;
+  if (combinedError){ 
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 px-4 py-10">
         <div className="mx-auto w-full max-w-5xl space-y-4">
-          <div className="rounded-xl border border-red-800/60 bg-red-950/40 p-4 text-red-200">
-            {combinedError}
-          </div>
+          <ErrorBanner message={combinedError} />
           <Link className="text-slate-200 underline" to="/">
             Back to Home
           </Link>
         </div>
       </div>
-    );
-  }
+    )}
 
   if (!experiment) return null;
 
@@ -149,7 +131,7 @@ export default function ExperimentDetailView({ experimentId }) {
               </Badge>
               <Badge>{experiment.task ?? "—"}</Badge>
               <Badge>{experiment.dataset?.name ?? "—"}</Badge>
-              <Badge>{experiment.algorithm?.name ?? "—"}</Badge>
+              <Badge>{experiment.algorithm_variant?.algorithm?.name ?? "—"}</Badge>
             </div>
 
             <p className="mt-2 text-sm text-slate-300">

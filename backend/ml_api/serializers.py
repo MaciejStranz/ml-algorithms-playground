@@ -184,7 +184,7 @@ class ExperimentCreateSerializer(serializers.Serializer):
     )
 
     hyperparameters = serializers.DictField(
-        child=serializers.JSONField(),
+        child=serializers.JSONField(allow_null=True),
         required=False,
         help_text="Algorithm-variant-specific hyperparameters.",
     )

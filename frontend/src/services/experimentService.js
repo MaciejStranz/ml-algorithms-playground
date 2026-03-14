@@ -6,7 +6,7 @@ export async function fetchExperiments({signal} = {}) {
 }
 
 export async function deleteExperiment(id) {
-    const res = await api.delete(`api/experiments/${id}/`);
+    await api.delete(`api/experiments/${id}/`);
 }
 
 export async function createExperiment(payload) {

@@ -1,4 +1,4 @@
-export default function VariantCodeBadge({ code }) {
+export default function AlgorithmVariantBadge({ code }) {
   if (!code) return null;
 
   return (

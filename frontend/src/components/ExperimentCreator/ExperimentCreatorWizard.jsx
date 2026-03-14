@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { useDatasetsQuery } from "../../queries/datasets/useDatasetsQuery";
@@ -42,46 +42,54 @@ export default function ExperimentCreatorWizard() {
   const task = selectedDataset?.task;
 
   const {
-    data: algorithmVariants = [], 
-    isPending: algorithmVariantsLoading, 
-    error: algorithmVariantsErrorObj
+    data: algorithmVariants = [],
+    isPending: algorithmVariantsLoading,
+    error: algorithmVariantsErrorObj,
   } = useAlgorithmVariantsQuery(task);
 
   const selectedVariant = useMemo(
-    () => algorithmVariants.find((v) => String(v.id) === String(algorithmVariantId)), 
-    [algorithmVariants, algorithmVariantId]
+    () =>
+      algorithmVariants.find(
+        (v) => String(v.id) === String(algorithmVariantId),
+      ),
+    [algorithmVariants, algorithmVariantId],
   );
 
   const datasetsError = datasetsErrorObj?.response?.data?.detail || "";
-  const algorithmsError = algorithmVariantsErrorObj?.response?.data?.detail || "";
+  const algorithmsError =
+    algorithmVariantsErrorObj?.response?.data?.detail || "";
 
-  // reset downstream selection when dataset changes
-  useEffect(() => {
+  function getDefaultHyperparameters(specs) {
+    const defaults = {};
+
+    for (const spec of specs ?? []) {
+      if (!spec?.name) continue;
+      defaults[spec.name] = spec.default ?? null;
+    }
+
+    return defaults;
+  }
+  
+  function handleDatasetSelect(nextDatasetId) {
+    setDatasetId(nextDatasetId);
     setAlgorithmVariantId("");
     setHyperparameters({});
     setSubmitError("");
-
-    // classification-only option should be reset when task changes
     setIncludeProbabilities(false);
-  }, [datasetId]);
+  }
 
-  // init hyperparameters defaults when algorithm changes
-  useEffect(() => {
-    if (!selectedVariant) return;
+  function handleAlgorithmVariantSelect(nextVariantId) {
+    setAlgorithmVariantId(nextVariantId);
 
-    const specs = Array.isArray(selectedVariant.hyperparameter_specs)
-      ? selectedVariant.hyperparameter_specs
-      : [];
+    const nextVariant = algorithmVariants.find(
+      (variant) => String(variant.id) === String(nextVariantId),
+    );
 
-    const defaults = {};
-    for (const s of specs) {
-      if (!s?.name) continue;
-      defaults[s.name] = s.default ?? null;
-    }
-
-    setHyperparameters(defaults);
+    setHyperparameters(
+      getDefaultHyperparameters(nextVariant?.hyperparameter_specs),
+    );
     setSubmitError("");
-  }, [selectedVariant]);
+  }
 
   const errorMsg = datasetsError || algorithmsError;
 
@@ -123,7 +131,7 @@ export default function ExperimentCreatorWizard() {
         include_probabilities: isClassification ? includeProbabilities : false,
       };
 
-      await createExperimentMutation.mutateAsync(payload)
+      await createExperimentMutation.mutateAsync(payload);
 
       // MVP: go back to Home (experiments list)
       // Later: navigate(`/experiments/${created.id}`)
@@ -154,7 +162,7 @@ export default function ExperimentCreatorWizard() {
         <DatasetPicker
           datasets={datasets}
           selectedId={datasetId}
-          onSelect={setDatasetId}
+          onSelect={handleDatasetSelect}
         />
       )}
 
@@ -167,7 +175,7 @@ export default function ExperimentCreatorWizard() {
           <AlgorithmPicker
             algorithmVariants={algorithmVariants}
             selectedId={algorithmVariantId}
-            onSelect={setAlgorithmVariantId}
+            onSelect={handleAlgorithmVariantSelect}
           />
         ))}
 
@@ -250,7 +258,9 @@ export default function ExperimentCreatorWizard() {
                   : "bg-slate-700 text-slate-300 cursor-not-allowed",
               ].join(" ")}
             >
-              {createExperimentMutation.isPending ? "Running..." : "Run experiment"}
+              {createExperimentMutation.isPending
+                ? "Running..."
+                : "Run experiment"}
             </button>
           </div>
         </>

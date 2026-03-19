@@ -1,10 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { fetchDatasets } from "../../services/datasetService";
-import { fetchAlgorithms } from "../../services/algorithmService";
-import { createExperiment } from "../../services/experimentService";
-import { useResourceList } from "../../hooks/useResourceList";
+import { useDatasetsQuery } from "../../queries/datasets/useDatasetsQuery";
+import { useAlgorithmVariantsQuery } from "../../queries/algorithms/useAlgorithmVariantsQuery";
+import { useCreateExperimentMutation } from "../../queries/experiments/useCreateExperimentMutation";
 
 import DatasetPicker from "./DatasetPicker";
 import AlgorithmPicker from "./AlgorithmPicker";
@@ -13,9 +12,9 @@ import { buildHyperparametersPayload } from "../../utils/hyperparameters";
 
 export default function ExperimentCreatorWizard() {
   const navigate = useNavigate();
-
+  // user input
   const [datasetId, setDatasetId] = useState("");
-  const [algorithmId, setAlgorithmId] = useState("");
+  const [algorithmVariantId, setAlgorithmVariantId] = useState("");
   const [hyperparameters, setHyperparameters] = useState({});
 
   // config
@@ -25,88 +24,87 @@ export default function ExperimentCreatorWizard() {
   const [includeProbabilities, setIncludeProbabilities] = useState(false);
 
   // submit state
-  const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
 
-  const {
-    items: datasets,
-    loading: datasetsLoading,
-    errorMsg: datasetsError,
-  } = useResourceList(({ signal }) => fetchDatasets({ signal }), []);
+  const createExperimentMutation = useCreateExperimentMutation();
 
   const {
-    items: algorithms,
-    loading: algorithmsLoading,
-    errorMsg: algorithmsError,
-  } = useResourceList(({ signal }) => fetchAlgorithms({ signal }), []);
+    data: datasets = [],
+    isPending: datasetsLoading,
+    error: datasetsErrorObj,
+  } = useDatasetsQuery();
 
   const selectedDataset = useMemo(
     () => datasets.find((d) => String(d.id) === String(datasetId)),
-    [datasets, datasetId]
+    [datasets, datasetId],
   );
 
   const task = selectedDataset?.task;
 
-  const filteredAlgorithms = useMemo(() => {
-    if (!task) return [];
-    return algorithms.filter((algo) => {
-      const specs = Array.isArray(algo.hyperparameter_specs) ? algo.hyperparameter_specs : [];
-      return specs.some((s) => Array.isArray(s.applicable_tasks) && s.applicable_tasks.includes(task));
-    });
-  }, [algorithms, task]);
+  const {
+    data: algorithmVariants = [],
+    isPending: algorithmVariantsLoading,
+    error: algorithmVariantsErrorObj,
+  } = useAlgorithmVariantsQuery(task);
 
-  const selectedAlgorithm = useMemo(
-    () => algorithms.find((a) => String(a.id) === String(algorithmId)),
-    [algorithms, algorithmId]
+  const selectedVariant = useMemo(
+    () =>
+      algorithmVariants.find(
+        (v) => String(v.id) === String(algorithmVariantId),
+      ),
+    [algorithmVariants, algorithmVariantId],
   );
 
-  // reset downstream selection when dataset changes
-  useEffect(() => {
-    setAlgorithmId("");
-    setHyperparameters({});
-    setSubmitError("");
+  const datasetsError = datasetsErrorObj?.response?.data?.detail || "";
+  const algorithmsError =
+    algorithmVariantsErrorObj?.response?.data?.detail || "";
 
-    // classification-only option should be reset when task changes
-    setIncludeProbabilities(false);
-  }, [datasetId]);
-
-  // init hyperparameters defaults when algorithm changes
-  useEffect(() => {
-    if (!selectedAlgorithm || !task) return;
-
-    const specs = Array.isArray(selectedAlgorithm.hyperparameter_specs)
-      ? selectedAlgorithm.hyperparameter_specs
-      : [];
-
-    const applicable = specs.filter((s) => {
-      const tasks = Array.isArray(s.applicable_tasks) ? s.applicable_tasks : [];
-      return tasks.length === 0 || tasks.includes(task);
-    });
-
+  function getDefaultHyperparameters(specs) {
     const defaults = {};
-    for (const s of applicable) {
-      if (!s?.name) continue;
-      defaults[s.name] = s.default ?? null;
+
+    for (const spec of specs ?? []) {
+      if (!spec?.name) continue;
+      defaults[spec.name] = spec.default ?? null;
     }
 
-    setHyperparameters(defaults);
+    return defaults;
+  }
+  
+  function handleDatasetSelect(nextDatasetId) {
+    setDatasetId(nextDatasetId);
+    setAlgorithmVariantId("");
+    setHyperparameters({});
     setSubmitError("");
-  }, [selectedAlgorithm, task]);
+    setIncludeProbabilities(false);
+  }
+
+  function handleAlgorithmVariantSelect(nextVariantId) {
+    setAlgorithmVariantId(nextVariantId);
+
+    const nextVariant = algorithmVariants.find(
+      (variant) => String(variant.id) === String(nextVariantId),
+    );
+
+    setHyperparameters(
+      getDefaultHyperparameters(nextVariant?.hyperparameter_specs),
+    );
+    setSubmitError("");
+  }
 
   const errorMsg = datasetsError || algorithmsError;
 
   const isClassification = task?.endsWith("_classification");
   const canSubmit =
     Boolean(datasetId) &&
-    Boolean(algorithmId) &&
+    Boolean(algorithmVariantId) &&
     !datasetsLoading &&
-    !algorithmsLoading &&
-    !submitting;
+    !algorithmVariantsLoading &&
+    !createExperimentMutation.isPending;
 
   async function handleRunExperiment() {
     setSubmitError("");
 
-    if (!datasetId || !algorithmId) {
+    if (!datasetId || !algorithmVariantId) {
       setSubmitError("Please select dataset and algorithm first.");
       return;
     }
@@ -117,17 +115,15 @@ export default function ExperimentCreatorWizard() {
       return;
     }
 
-    setSubmitting(true);
     try {
       const hp = buildHyperparametersPayload({
-        specs: selectedAlgorithm?.hyperparameter_specs,
-        task,
+        specs: selectedVariant?.hyperparameter_specs,
         values: hyperparameters,
       });
 
       const payload = {
         dataset: Number(datasetId),
-        algorithm: Number(algorithmId),
+        algorithm_variant: Number(algorithmVariantId),
         hyperparameters: hp,
         test_size: testSize,
         random_state: randomState,
@@ -135,8 +131,7 @@ export default function ExperimentCreatorWizard() {
         include_probabilities: isClassification ? includeProbabilities : false,
       };
 
-      console.log(payload) //debuging
-      const created = await createExperiment(payload);
+      await createExperimentMutation.mutateAsync(payload);
 
       // MVP: go back to Home (experiments list)
       // Later: navigate(`/experiments/${created.id}`)
@@ -148,8 +143,6 @@ export default function ExperimentCreatorWizard() {
         (typeof err?.response?.data === "string" ? err.response.data : null) ||
         "Failed to run experiment. Please check input and try again.";
       setSubmitError(msg);
-    } finally {
-      setSubmitting(false);
     }
   }
 
@@ -169,29 +162,27 @@ export default function ExperimentCreatorWizard() {
         <DatasetPicker
           datasets={datasets}
           selectedId={datasetId}
-          onSelect={setDatasetId}
+          onSelect={handleDatasetSelect}
         />
       )}
 
-      {datasetId && (
-        algorithmsLoading ? (
+      {datasetId &&
+        (algorithmVariantsLoading ? (
           <div className="rounded-2xl border border-slate-700 bg-slate-900/60 p-6 text-slate-200">
             Loading algorithms...
           </div>
         ) : (
           <AlgorithmPicker
-            algorithms={filteredAlgorithms}
-            selectedId={algorithmId}
-            onSelect={setAlgorithmId}
+            algorithmVariants={algorithmVariants}
+            selectedId={algorithmVariantId}
+            onSelect={handleAlgorithmVariantSelect}
           />
-        )
-      )}
+        ))}
 
-      {datasetId && algorithmId && selectedAlgorithm && (
+      {datasetId && algorithmVariantId && selectedVariant && (
         <>
           <HyperparametersForm
-            specs={selectedAlgorithm.hyperparameter_specs}
-            task={task}
+            specs={selectedVariant.hyperparameter_specs}
             values={hyperparameters}
             onChange={setHyperparameters}
           />
@@ -267,7 +258,9 @@ export default function ExperimentCreatorWizard() {
                   : "bg-slate-700 text-slate-300 cursor-not-allowed",
               ].join(" ")}
             >
-              {submitting ? "Running..." : "Run experiment"}
+              {createExperimentMutation.isPending
+                ? "Running..."
+                : "Run experiment"}
             </button>
           </div>
         </>

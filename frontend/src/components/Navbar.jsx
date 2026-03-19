@@ -1,4 +1,4 @@
-import { Link, NavLink, replace, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "../constants";
 
 export default function Navbar() {

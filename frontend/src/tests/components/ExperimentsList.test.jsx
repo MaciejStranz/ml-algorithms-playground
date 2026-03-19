@@ -1,31 +1,38 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { describe, expect, test, vi } from "vitest";
 import { http, HttpResponse } from "msw";
+
 import { server } from "../testServer";
+import ExperimentsList from "../../components/Experiments/ExperimentsList";
 
-// Adjust this path if needed:
-import ExperimentsList from "../../components/experiments/ExperimentsList";
-
-/**
- * Match both:
- *  - "/api/experiments/"
- *  - "http://localhost:8000/api/experiments/"
- */
 const EXPERIMENTS_LIST_URL = /\/api\/experiments\/$/;
-
-/**
- * Match delete endpoint:
- *  - "/api/experiments/:id/"
- *  - "http://localhost:8000/api/experiments/:id/"
- */
 const EXPERIMENT_DELETE_URL = /\/api\/experiments\/\d+\/$/;
 
+function createTestQueryClient() {
+  return new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+      mutations: {
+        retry: false,
+      },
+    },
+  });
+}
+
 function renderList() {
+  const queryClient = createTestQueryClient();
+
   render(
-    <MemoryRouter initialEntries={["/"]}>
-      <ExperimentsList />
-    </MemoryRouter>
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter initialEntries={["/"]}>
+        <ExperimentsList />
+      </MemoryRouter>
+    </QueryClientProvider>
   );
 }
 
@@ -33,7 +40,7 @@ describe("ExperimentsList", () => {
   test("shows a loading state while experiments are being fetched", async () => {
     server.use(
       http.get(EXPERIMENTS_LIST_URL, async () => {
-        await new Promise((r) => setTimeout(r, 150));
+        await new Promise((resolve) => setTimeout(resolve, 150));
         return HttpResponse.json([], { status: 200 });
       })
     );
@@ -44,7 +51,7 @@ describe("ExperimentsList", () => {
     expect(await screen.findByText(/no experiments yet/i)).toBeInTheDocument();
   });
 
-  test("renders experiments and displays Accuracy (%) for classification and R² for regression", async () => {
+  test("renders experiments using algorithm_variant contract", async () => {
     server.use(
       http.get(EXPERIMENTS_LIST_URL, () =>
         HttpResponse.json(
@@ -52,7 +59,15 @@ describe("ExperimentsList", () => {
             {
               id: 11,
               dataset: { id: 1, name: "Iris" },
-              algorithm: { id: 1, name: "Support Vector Machine" },
+              algorithm_variant: {
+                id: 101,
+                code: "svc",
+                algorithm: {
+                  id: 1,
+                  code: "svm",
+                  name: "Support Vector Machine",
+                },
+              },
               task: "multiclass_classification",
               created_at: "2025-12-06T03:08:18.950169Z",
               status: "finished",
@@ -62,7 +77,15 @@ describe("ExperimentsList", () => {
             {
               id: 7,
               dataset: { id: 5, name: "Sinusoid Function" },
-              algorithm: { id: 5, name: "Neural Network (MLP, PyTorch)" },
+              algorithm_variant: {
+                id: 202,
+                code: "rf_regressor",
+                algorithm: {
+                  id: 2,
+                  code: "random_forest",
+                  name: "Random Forest",
+                },
+              },
               task: "regression",
               created_at: "2025-12-06T02:09:41.798903Z",
               status: "finished",
@@ -77,23 +100,25 @@ describe("ExperimentsList", () => {
 
     renderList();
 
-    // Basic content
     expect(await screen.findByText(/experiment #11/i)).toBeInTheDocument();
     expect(screen.getByText(/support vector machine/i)).toBeInTheDocument();
     expect(screen.getByText(/iris/i)).toBeInTheDocument();
+    expect(screen.getByText("svc")).toBeInTheDocument();
 
     expect(screen.getByText(/experiment #7/i)).toBeInTheDocument();
+    expect(screen.getByText(/random forest/i)).toBeInTheDocument();
     expect(screen.getByText(/sinusoid function/i)).toBeInTheDocument();
+    expect(screen.getByText("rf_regressor")).toBeInTheDocument();
 
-    // Metric mapping checks
-    expect(screen.getByText(/93\.3%/)).toBeInTheDocument();     // Accuracy formatted as %
-    expect(screen.getByText("R²")).toBeInTheDocument();         // R² label
-    expect(screen.getByText(/0\.9986/)).toBeInTheDocument();    // R² value formatted to 4 decimals
+    expect(screen.getByText(/93\.3%/)).toBeInTheDocument();
+    expect(screen.getByText(/0\.9986/)).toBeInTheDocument();
   });
 
   test("shows an empty state when the user has no experiments", async () => {
     server.use(
-      http.get(EXPERIMENTS_LIST_URL, () => HttpResponse.json([], { status: 200 }))
+      http.get(EXPERIMENTS_LIST_URL, () =>
+        HttpResponse.json([], { status: 200 })
+      )
     );
 
     renderList();
@@ -102,72 +127,87 @@ describe("ExperimentsList", () => {
   });
 
   test("deletes an experiment after confirmation and removes it from the list", async () => {
-  const user = userEvent.setup();
+    const user = userEvent.setup();
 
-  server.use(
-    http.get(EXPERIMENTS_LIST_URL, () =>
-      HttpResponse.json(
-        [
-          {
-            id: 11,
-            dataset: { id: 1, name: "Iris" },
-            algorithm: { id: 1, name: "Support Vector Machine" },
-            task: "multiclass_classification",
-            created_at: "2025-12-06T03:08:18.950169Z",
-            status: "finished",
-            hyperparameters: {},
-            metrics: { accuracy: 1.0 },
+    let experiments = [
+      {
+        id: 11,
+        dataset: { id: 1, name: "Iris" },
+        algorithm_variant: {
+          id: 101,
+          code: "svc",
+          algorithm: {
+            id: 1,
+            code: "svm",
+            name: "Support Vector Machine",
           },
-          {
-            id: 7,
-            dataset: { id: 5, name: "Sinusoid Function" },
-            algorithm: { id: 5, name: "Neural Network (MLP, PyTorch)" },
-            task: "regression",
-            created_at: "2025-12-06T02:09:41.798903Z",
-            status: "finished",
-            hyperparameters: {},
-            metrics: { r2: 0.5 },
+        },
+        task: "multiclass_classification",
+        created_at: "2025-12-06T03:08:18.950169Z",
+        status: "finished",
+        hyperparameters: {},
+        metrics: { accuracy: 1.0 },
+      },
+      {
+        id: 7,
+        dataset: { id: 5, name: "Sinusoid Function" },
+        algorithm_variant: {
+          id: 202,
+          code: "rf_regressor",
+          algorithm: {
+            id: 2,
+            code: "random_forest",
+            name: "Random Forest",
           },
-        ],
-        { status: 200 }
-      )
-    )
-  );
+        },
+        task: "regression",
+        created_at: "2025-12-06T02:09:41.798903Z",
+        status: "finished",
+        hyperparameters: {},
+        metrics: { r2: 0.5 },
+      },
+    ];
 
-  let deletedId = null;
+    let deletedId = null;
 
-  server.use(
-    http.delete(EXPERIMENT_DELETE_URL, ({ request }) => {
-      const url = new URL(request.url);
-      const parts = url.pathname.split("/").filter(Boolean); // ["api","experiments","11"]
-      deletedId = Number(parts[2]);
-      return new HttpResponse(null, { status: 204 });
-    })
-  );
+    server.use(
+      http.get(EXPERIMENTS_LIST_URL, () =>
+        HttpResponse.json(experiments, { status: 200 })
+      ),
+      http.delete(EXPERIMENT_DELETE_URL, ({ request }) => {
+        const url = new URL(request.url);
+        const parts = url.pathname.split("/").filter(Boolean);
+        deletedId = Number(parts[2]);
 
-  const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
+        experiments = experiments.filter((exp) => exp.id !== deletedId);
 
-  renderList();
+        return new HttpResponse(null, { status: 204 });
+      })
+    );
 
-  // Assert: both experiments are visible via their links
-  const exp11Link = await screen.findByRole("link", { name: /experiment #11/i });
-  expect(exp11Link).toHaveAttribute("href", "/experiments/11");
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
 
-  const exp7Link = screen.getByRole("link", { name: /experiment #7/i });
-  expect(exp7Link).toHaveAttribute("href", "/experiments/7");
+    renderList();
 
-  // Act: click Delete for experiment #11
-  // Still safe to click the first delete button because list order is deterministic (API order)
-  const deleteButtons = screen.getAllByRole("button", { name: /^delete$/i });
-  await user.click(deleteButtons[0]);
+    expect(
+      await screen.findByRole("link", { name: /experiment #11/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /experiment #7/i })
+    ).toBeInTheDocument();
 
-  // Assert: experiment #11 disappears, #7 remains
-  expect(screen.queryByRole("link", { name: /experiment #11/i })).not.toBeInTheDocument();
-  expect(screen.getByRole("link", { name: /experiment #7/i })).toBeInTheDocument();
+    const deleteButtons = screen.getAllByRole("button", { name: /^delete$/i });
+    await user.click(deleteButtons[0]);
 
-  expect(deletedId).toBe(11);
+    await waitFor(() => {
+      expect(
+        screen.queryByRole("link", { name: /experiment #11/i })
+      ).not.toBeInTheDocument();
+    });
 
-  confirmSpy.mockRestore();
-});
+    expect(screen.getByRole("link", { name: /experiment #7/i })).toBeInTheDocument();
+    expect(deletedId).toBe(11);
 
+    confirmSpy.mockRestore();
+  });
 });

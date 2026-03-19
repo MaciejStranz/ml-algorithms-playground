@@ -4,18 +4,11 @@ function isNumberString(s) {
   return !Number.isNaN(Number(s));
 }
 
-export function buildHyperparametersPayload({ specs, task, values }) {
-  const list = Array.isArray(specs) ? specs : [];
-  const applicable = task
-    ? list.filter((s) => {
-        const tasks = Array.isArray(s.applicable_tasks) ? s.applicable_tasks : [];
-        return tasks.length === 0 || tasks.includes(task);
-      })
-    : list;
-
+export function buildHyperparametersPayload({ specs, values }) {
+  const hyperparamSpecs = Array.isArray(specs) ? specs : [];
   const out = {};
 
-  for (const spec of applicable) {
+  for (const spec of hyperparamSpecs) {
     const name = spec?.name;
     if (!name) continue;
 

@@ -1,5 +1,3 @@
-import { useMemo } from "react";
-
 function coerceNumber(value, kind) {
   if (value === "" || value === null || value === undefined) return null;
   const n = Number(value);
@@ -25,16 +23,8 @@ function FieldWrapper({ label, description, children }) {
   );
 }
 
-export default function HyperparametersForm({ specs, task, values, onChange }) {
-  const applicableSpecs = useMemo(() => {
-    const list = Array.isArray(specs) ? specs : [];
-    if (!task) return list;
-
-    return list.filter((s) => {
-      const tasks = Array.isArray(s.applicable_tasks) ? s.applicable_tasks : [];
-      return tasks.length === 0 || tasks.includes(task);
-    });
-  }, [specs, task]);
+export default function HyperparametersForm({ specs, values, onChange }) {
+  const hyperparamSpecs = Array.isArray(specs) ? specs : [];
 
   const setValue = (name, value) => {
     onChange({ ...values, [name]: value });
@@ -49,13 +39,13 @@ export default function HyperparametersForm({ specs, task, values, onChange }) {
         </p>
       </div>
 
-      {applicableSpecs.length === 0 ? (
+      {hyperparamSpecs.length === 0 ? (
         <div className="rounded-xl bg-slate-950/40 p-4 text-slate-200">
-          No hyperparameters available for this task.
+          No hyperparameters available for this algorithm variant.
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          {applicableSpecs.map((spec) => {
+          {hyperparamSpecs.map((spec) => {
             const name = spec.name;
             const label = spec.display_name || spec.name;
             const desc = spec.description;
@@ -120,7 +110,7 @@ export default function HyperparametersForm({ specs, task, values, onChange }) {
                         if (Array.isArray(parsed) && parsed.every((x) => Number.isInteger(x))) {
                           setValue(name, parsed);
                         } else {
-                          // jeżeli niepoprawne, zostaw jako string (nie psuj stanu)
+                          // if invalid string remains
                           setValue(name, raw);
                         }
                       } catch {

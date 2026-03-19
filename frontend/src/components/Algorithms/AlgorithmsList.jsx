@@ -1,6 +1,4 @@
-import { useCallback } from "react";
-import { fetchAlgorithms } from "../../services/algorithmService";
-import { useResourceList } from "../../hooks/useResourceList";
+import { useAlgorithmsQuery } from "../../queries/algorithms/useAlgorithmsQuery";
 
 import LoadingCard from "../UI/LoadingCard";
 import ErrorBanner from "../UI/ErrorBanner";
@@ -10,25 +8,19 @@ import ResourceList from "../UI/ResourceList";
 import AlgorithmCard from "./AlgorithmCard";
 
 export default function AlgorithmsList() {
-  const loader = useCallback(({ signal }) => fetchAlgorithms({ signal }), []);
+  const {data: algorithms = [], isPending, error} = useAlgorithmsQuery();
 
-  const { items: algorithms, loading, errorMsg } = useResourceList(
-    loader,
-    [loader],
-    { fallbackErrorMessage: "Failed to load algorithms." }
-  );
-
-  if (loading) return <LoadingCard text="Loading algorithms..." />;
+  if (isPending) return <LoadingCard text="Loading algorithms..." />;
+  if (error) return <ErrorBanner message={error?.response?.data?.detail || "Failed to load algorithms"} />;
 
   return (
     <div className="space-y-4">
-      <ErrorBanner message={errorMsg} />
 
-      {!errorMsg && algorithms.length === 0 && (
+      {algorithms.length === 0 && (
         <EmptyState text="No algorithms available." />
       )}
 
-      {!errorMsg && algorithms.length > 0 && (
+      {algorithms.length > 0 && (
         <ResourceList
           items={algorithms}
           renderItem={(a) => <AlgorithmCard key={a.id} algorithm={a} />}

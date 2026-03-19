@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand
 
 from ml_api.models import Dataset 
 from ml_core.data_handlers.load_dataset import get_all_dataset_meta
-from ml_core.data_handlers.metadata import TaskType
+
 
 
 class Command(BaseCommand):

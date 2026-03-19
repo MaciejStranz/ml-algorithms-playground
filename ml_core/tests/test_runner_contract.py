@@ -19,7 +19,7 @@ def test_run_experiment_contract_classification_with_predictions_and_proba():
     # Use a fast/classical algorithm entry that supports classification
     config = RunConfig(
         dataset_name="iris",
-        algorithm_name="regression",
+        algorithm_name="xgboost",
         hyperparams={},
         test_size=0.3,
         random_state=42,
@@ -123,7 +123,7 @@ def test_run_experiment_contract_classification_without_predictions_and_proba():
     # Use a fast/classical algorithm entry that supports classification
     config = RunConfig(
         dataset_name="iris",
-        algorithm_name="regression",
+        algorithm_name="svm",
         hyperparams={},
         test_size=0.3,
         random_state=42,

@@ -10,13 +10,13 @@ def test_experiments_list_requires_auth(api_client):
 
 
 def test_experiments_list_only_current_user(
-    auth_client, auth_client2, user, user2, dataset_iris, algo_svm, make_experiment
+    auth_client, auth_client2, user, user2, dataset_iris, make_experiment
 ):
     exp_user1 = make_experiment(
-        user=user, dataset=dataset_iris, algorithm=algo_svm, metrics={"accuracy": 0.9}
+        user=user, dataset=dataset_iris, metrics={"accuracy": 0.9}
     )
     exp_user2 = make_experiment(
-        user=user2, dataset=dataset_iris, algorithm=algo_svm, metrics={"accuracy": 0.8}
+        user=user2, dataset=dataset_iris, metrics={"accuracy": 0.8}
     )
 
     res1 = auth_client.get("/api/experiments/")
@@ -34,15 +34,14 @@ def test_experiments_list_only_current_user(
 
 @pytest.mark.django_db
 def test_experiments_list_ordering_desc(
-    auth_client, user, dataset_iris, dataset_diabetes, algo_svm, make_experiment
+    auth_client, user, dataset_iris, dataset_diabetes, make_experiment
 ):
     exp1 = make_experiment(
-        user=user, dataset=dataset_iris, algorithm=algo_svm, metrics={"accuracy": 0.9}
+        user=user, dataset=dataset_iris, metrics={"accuracy": 0.9}
     )
     exp2 = make_experiment(
         user=user,
         dataset=dataset_diabetes,
-        algorithm=algo_svm,
         metrics={"accuracy": 0.8},
     )
 

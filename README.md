@@ -1,4 +1,4 @@
-# ML Algorithms Playground
+﻿# ML Algorithms Playground
 
 ML Algorithms Playground is an interactive platform that allows users to run machine learning experiments through a web interface.
 
@@ -259,36 +259,104 @@ Tests for `ml_core` focus on the ML execution layer itself, including:
 Together, these tests verify that the core training pipeline returns consistent outputs and enforces the expected validation rules.
 
 
-
 ## ⚙️ Local Development
-First clone repo:
-```
+
+The project is currently set up for local development with **Docker Compose**.
+
+### Prerequisites
+
+- Docker
+- Docker Compose
+
+### Running the full stack
+
+Clone the repository:
+
+```bash
 git clone https://github.com/MaciejStranz/ml-algorithms-playground.git
 cd ml-algorithms-playground
 ```
-After cloning repo create virtual env:
-```
-python -m venv venv
-venv\Scripts\activate
+
+Build and start all services:
+
+```bash
+docker compose up --build
 ```
 
-Install dependencies:
-```
-pip install -r requirements.txt
+This starts:
+
+- **PostgreSQL** database
+- **Django backend** on `http://localhost:8000`
+- **React frontend** on `http://localhost:5173`
+
+### Backend startup flow
+
+When the backend container starts, it automatically:
+
+1. waits for the PostgreSQL database to become available
+2. applies Django migrations
+3. synchronizes datasets from `ml_core`
+4. synchronizes algorithms and algorithm variants from `ml_core`
+5. starts the development server
+
+### Environment configuration
+
+Environment variables are currently provided through:
+
+- `backend/.env`
+- `frontend/.env`
+
+### Useful commands
+
+Stop the stack:
+
+```bash
+docker compose down
 ```
 
-Django database migriations and data sync:
+Stop the stack and remove the database volume:
+
+```bash
+docker compose down -v
 ```
-cd backend
-python manage.py migrate
-python manage.py makemigrations
-python sync_datasets
-python sync_algorithms
+
+Rebuild containers after dependency or Dockerfile changes:
+
+```bash
+docker compose up --build
 ```
-And finally run development server:
+
+Generate new Django migrations inside Docker:
+
+```bash
+docker compose run --rm backend python manage.py makemigrations
 ```
-python manage.py runserver
+
+Run backend management commands inside Docker:
+
+```bash
+docker compose run --rm backend python manage.py <command>
 ```
+
+### Environment variables
+
+Backend expects variables from `backend/.env`:
+
+- `SECRET_KEY` – Django secret key
+- `DEBUG` – debug mode (`1` or `0`)
+- `ALLOWED_HOSTS` – comma-separated allowed hosts
+- `POSTGRES_DB` – PostgreSQL database name
+- `POSTGRES_USER` – PostgreSQL user
+- `POSTGRES_PASSWORD` – PostgreSQL password
+- `DB_HOST` – database host (`db` in Docker Compose)
+- `DB_PORT` – database port
+- `CORS_ALLOWED_ORIGINS` – comma-separated frontend origins allowed by CORS
+- `CSRF_TRUSTED_ORIGINS` – comma-separated trusted frontend origins
+- `TIME_ZONE` – Django time zone, currently `UTC`
+
+Frontend expects variables from `frontend/.env`:
+
+- `VITE_API_URL` – backend API base URL, currently `http://localhost:8000`
 
 
 ## 🛠 Technology Stack
@@ -304,7 +372,7 @@ python manage.py runserver
 - Django
 - Django REST Framework
 - DRF SimpleJWT
-- SQLite 
+- PostgreSQL 
 
 ### Frontend 
 - React
@@ -324,8 +392,8 @@ python manage.py runserver
 
 Planned improvements focus on scalability, usability, and deeper experiment analysis:
 
-- **Containerization & deployment**
-  - Dockerize the entire stack (backend + ml_core + frontend + supporting services) to enable reproducible local setup and smoother deployment.
+- **Deployment and production hardening**
+  - Add a production-oriented setup with Nginx, optimized images, and environment-specific configuration.
 
 - **Asynchronous experiment execution**
   - Move model training and evaluation to background jobs using **Celery** and a message broker.
@@ -349,9 +417,3 @@ Planned improvements focus on scalability, usability, and deeper experiment anal
     - Learning curves
     - Additional task-specific metrics
   - Improve experiment interpretability and result analysis.
-
-
-
-
-
-

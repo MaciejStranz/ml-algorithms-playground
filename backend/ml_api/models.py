@@ -11,7 +11,7 @@ class Dataset(models.Model):
     """
     code = models.CharField(max_length=50, unique=True)  # np. "iris", "wine", "sinx"
     name = models.CharField(max_length=100)
-    task = models.CharField(max_length=20) # "binary_classification" | "multiclass_classification" | "regression"
+    task = models.CharField(max_length=50) # "binary_classification" | "multiclass_classification" | "regression"
     n_samples = models.IntegerField()
     n_features = models.IntegerField()
     n_classes = models.IntegerField(null=True, blank=True)
@@ -92,7 +92,7 @@ class Experiment(models.Model):
     )
 
     # Cached task type, copied from Dataset.task for convenience
-    task = models.CharField(max_length=20)  # "binary_classification" | "multiclass_classification" | "regression"
+    task = models.CharField(max_length=50)  # "binary_classification" | "multiclass_classification" | "regression"
 
     created_at = models.DateTimeField(auto_now_add=True)
 

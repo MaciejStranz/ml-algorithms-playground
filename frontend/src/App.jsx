@@ -43,22 +43,6 @@ function App() {
           }
         />
         <Route
-          path="/datasets"
-          element={
-            <ProtectedRoute>
-              <Datasets />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/algorithms"
-          element={
-            <ProtectedRoute>
-              <Algorithms />
-            </ProtectedRoute>
-          }
-        />
-        <Route
           path="/experiments/:id"
           element={
             <ProtectedRoute>
@@ -66,6 +50,8 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/datasets" element={<Datasets />} />
+        <Route path="/algorithms" element={<Algorithms />} />
         <Route path="/login" element={<Login />} />
         <Route path="/logout" element={<Logout />} />
         <Route path="/register" element={<RegisterAndLogout />} />
